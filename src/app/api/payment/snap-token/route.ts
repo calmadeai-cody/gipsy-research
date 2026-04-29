@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const orderId = generateOrderId(tier)
 
     // Create or update subscription
-    const subscription = await prisma.subscription.upsert({
+    await prisma.subscription.upsert({
       where: { id: existingSub?.id || 'temp' },
       create: {
         id: existingSub?.id || undefined,

@@ -47,7 +47,7 @@ function PaymentForm() {
   const tierParam = searchParams.get('tier') || 'LITE'
   const tier = (tierParam.toUpperCase() === 'PRO' ? 'PRO' : 'LITE') as 'LITE' | 'PRO'
   const info = TIER_INFO[tier]
-  const [snapToken, setSnapToken] = useState('')
+  const [, setSnapToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

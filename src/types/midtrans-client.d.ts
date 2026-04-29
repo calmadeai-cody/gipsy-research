@@ -20,5 +20,6 @@ declare module 'midtrans-client' {
     new (options: SnapOptions): Snap
   }
 
-  export default { Snap }
+  const MidtransClient = { Snap }
+  export default MidtransClient
 }
