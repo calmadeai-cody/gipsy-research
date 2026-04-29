@@ -81,11 +81,13 @@
 7. **API tests** - Add Vitest/Jest tests for /api/payment, /api/tools/* routes
 
 ### Blockers
-1. **Calmade AI iframe** - `https://calmade.ai/chat?tool=X&mode=iframe` needs confirmation as real endpoint
+1. **🔴 CRITICAL: Calmade AI iframe endpoint does not exist** - `calmade.ai` domain has no DNS (verified: `ENOTFOUND`). The entire 20-tool iframe architecture requires a real Calmade AI deployment at that domain. Options:
+   - Deploy Calmade AI to a real hosting (Vercel, Railway, etc.)
+   - OR replace iframe approach with direct Claude API calls (tools call Anthropic directly)
 2. **DATABASE_URL** - PostgreSQL connection string needed (currently localhost placeholder)
 3. **External API keys** - AUTH_RESEND_KEY, GOOGLE_CLIENT_ID/SECRET, MIDTRANS keys not configured
 
-### Project Status: Code Complete ✅ | Integration Blocked 🔒
+### Project Status: Code Complete ✅ | Integration Blocked 🔒 | ARCHITECTURAL DECISION NEEDED ⚠️
 The codebase is fully built and quality-checked. All features are implemented:
 - 21 pages (content, auth, dashboard, tools, payment)
 - Auth flow (Google + email magic link)
