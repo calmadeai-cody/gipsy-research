@@ -108,6 +108,8 @@ export default function HomePage() {
             <Link href="/#tools" className="text-gray-400 hover:text-white transition">AI Tools</Link>
             <Link href="/#cara-pakai" className="text-gray-400 hover:text-white transition">Cara Pakai</Link>
             <Link href="/konsultasi" className="text-gray-400 hover:text-white transition">Konsultasi</Link>
+            <Link href="/olah-data" className="text-gray-400 hover:text-white transition">Olah Data</Link>
+            <Link href="/faq" className="text-gray-400 hover:text-white transition">FAQ</Link>
             <Link href="/artikel" className="text-gray-400 hover:text-white transition">Artikel</Link>
             <Link href="/pricing" className="text-gray-400 hover:text-white transition">Harga</Link>
           </div>
