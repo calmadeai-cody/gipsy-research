@@ -130,14 +130,14 @@ export default function PricingPage() {
                   <div className="text-purple-400 font-medium text-sm mb-2">{tier.toolsLabel}</div>
                   {tier.name !== 'PRO' && (
                     <ul className="space-y-1">
-                      {tier.tools.slice(0, 4).map((tool) => (
+                      {(tier.tools ?? []).slice(0, 4).map((tool) => (
                         <li key={tool} className="text-gray-400 text-sm flex items-center gap-2">
                           <span className="text-purple-400">•</span>
                           {tool}
                         </li>
                       ))}
-                      {tier.tools.length > 4 && (
-                        <li className="text-gray-500 text-sm">+ {tier.tools.length - 4} more...</li>
+                      {(tier.tools ?? []).length > 4 && (
+                        <li className="text-gray-500 text-sm">+ {(tier.tools ?? []).length - 4} more...</li>
                       )}
                     </ul>
                   )}

@@ -23,10 +23,17 @@ const allTools = [
   { slug: 'konversi-artikel-ilmiah', name: 'Konversi ke Artikel Ilmiah', category: 'Finalisasi Standar Akademik', pro: true },
 ]
 
-const categories = [...new Map(allTools.map(t => [t.category, { name: t.category, tools: [] }])).values()]
+type Tool = { slug: string; name: string; category: string; pro: boolean }
+type Category = { name: string; tools: Tool[] }
+
+const categories: Category[] = []
+const categoryMap = new Map<string, Category>()
 allTools.forEach(tool => {
-  const cat = categories.find(c => c.name === tool.category)
-  if (cat) cat.tools.push(tool)
+  if (!categoryMap.has(tool.category)) {
+    categoryMap.set(tool.category, { name: tool.category, tools: [] })
+    categories.push(categoryMap.get(tool.category)!)
+  }
+  categoryMap.get(tool.category)!.tools.push(tool)
 })
 
 export default function ToolsPage() {

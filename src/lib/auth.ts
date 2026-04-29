@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, user }) {
       if (session.user) {
-        session.user.id = user.id
+        ;(session.user as any).id = user.id
         // Get subscription
         const subscription = await prisma.subscription.findUnique({
           where: { userId: user.id },

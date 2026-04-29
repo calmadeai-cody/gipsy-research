@@ -1,8 +1,8 @@
-import midtransClient from 'midtransClient'
+import Midtrans from 'midtrans-client'
 
 const isProduction = process.env.MIDTRANS_ENV === 'production'
 
-export const snapClient = new midtransClient.Snap({
+export const snapClient = new Midtrans.Snap({
   isProduction,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
   clientKey: process.env.MIDTRANS_CLIENT_KEY,

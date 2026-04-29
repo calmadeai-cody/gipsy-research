@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 
 const TIER_INFO = {
   LITE: {
@@ -21,7 +21,7 @@ const TIER_INFO = {
   },
 }
 
-export default function PaymentPage() {
+function PaymentForm() {
   const searchParams = useSearchParams()
   const tierParam = searchParams.get('tier') || 'LITE'
   const tier = (tierParam.toUpperCase() === 'PRO' ? 'PRO' : 'LITE') as 'LITE' | 'PRO'
@@ -31,7 +31,6 @@ export default function PaymentPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Load Snap.js
     const script = document.createElement('script')
     script.src = 'https://app.sandbox.midtrans.com/snap/v1/js/snap.js'
     script.async = true
@@ -56,12 +55,10 @@ export default function PaymentPage() {
       
       if (response.ok && data.token) {
         setSnapToken(data.token)
-        // Open Snap popup
         const snapUrl = data.redirectUrl
         if (snapUrl) {
           window.location.href = snapUrl
         } else {
-          // Fallback: use snap.pay
           if ((window as any).snap) {
             (window as any).snap.pay(data.token, {
               onSuccess: (result: any) => {
@@ -87,13 +84,75 @@ export default function PaymentPage() {
       } else {
         setError(data.error || 'Gagal membuat transaksi payment')
       }
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setLoading(false)
     }
   }
 
+  return (
+    <>
+      {/* Order Summary */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold">Paket {info.name}</h2>
+            <p className="text-gray-400 text-sm">{info.description}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold gradient-text">{info.priceDisplay}</div>
+            <div className="text-gray-500 text-sm">{info.period}</div>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 pt-4 mb-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-400">Subtotal</span>
+            <span>{info.priceDisplay}</span>
+          </div>
+          <div className="flex justify-between text-sm mt-2">
+            <span className="text-gray-400">Total</span>
+            <span className="font-bold text-lg">{info.priceDisplay}</span>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        <button
+          onClick={handlePayment}
+          disabled={loading}
+          className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 rounded-xl font-medium text-lg transition"
+        >
+          {loading ? 'Memproses...' : 'Bayar dengan Midtrans'}
+        </button>
+
+        <p className="text-center text-gray-500 text-xs mt-4">
+          Pembayaran diproses oleh Midtrans. Kami tidak menyimpan data kartu kredit Anda.
+        </p>
+      </div>
+
+      {/* Payment Methods Info */}
+      <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+        <h3 className="font-bold mb-4">Metode Pembayaran Tersedia</h3>
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
+          <div>✓ Virtual Account (BCA, BNI, BRI, Mandiri)</div>
+          <div>✓ GoPay</div>
+          <div>✓ ShopeePay</div>
+          <div>✓ Credit Card</div>
+          <div>✓ QRIS</div>
+          <div>✓ Convenience Store (Indomaret, Alfamart)</div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default function PaymentPage() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -114,61 +173,9 @@ export default function PaymentPage() {
             <p className="text-gray-400">Pilih metode pembayaran yang Anda inginkan</p>
           </div>
 
-          {/* Order Summary */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold">Paket {info.name}</h2>
-                <p className="text-gray-400 text-sm">{info.description}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold gradient-text">{info.priceDisplay}</div>
-                <div className="text-gray-500 text-sm">{info.period}</div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-800 pt-4 mb-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Subtotal</span>
-                <span>{info.priceDisplay}</span>
-              </div>
-              <div className="flex justify-between text-sm mt-2">
-                <span className="text-gray-400">Total</span>
-                <span className="font-bold text-lg">{info.priceDisplay}</span>
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handlePayment}
-              disabled={loading}
-              className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 rounded-xl font-medium text-lg transition"
-            >
-              {loading ? 'Memproses...' : 'Bayar dengan Midtrans'}
-            </button>
-
-            <p className="text-center text-gray-500 text-xs mt-4">
-              Pembayaran diproses oleh Midtrans. Kami tidak menyimpan data kartu kredit Anda.
-            </p>
-          </div>
-
-          {/* Payment Methods Info */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
-            <h3 className="font-bold mb-4">Metode Pembayaran Tersedia</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
-              <div>✓ Virtual Account (BCA, BNI, BRI, Mandiri)</div>
-              <div>✓ GoPay</div>
-              <div>✓ ShopeePay</div>
-              <div>✓ Credit Card</div>
-              <div>✓ QRIS</div>
-              <div>✓ Convenience Store (Indomaret, Alfamart)</div>
-            </div>
-          </div>
+          <Suspense fallback={<div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center text-gray-400">Memuat...</div>}>
+            <PaymentForm />
+          </Suspense>
 
           <div className="text-center mt-8">
             <Link href="/" className="text-gray-400 hover:text-white transition text-sm">
