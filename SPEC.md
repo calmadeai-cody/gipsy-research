@@ -6,16 +6,24 @@
 
 ## Architecture
 
-### Core Approach
-- **AI Tools = iframes** to Calmade AI (external AI agent)
-- No direct AI API calls from this app - tools are embedded via iframe
-- User fills structured form → iframe submits to Calmade AI → result displayed
+### Core Approach (MIXED)
+- **3 tools** use direct Anthropic API via `lib/ai.ts` → ✅ WORKING
+  - Generator Judul Penelitian (`/tools/generator-judul`)
+  - Parafrase Paragraf (`/tools/paraphrase`)
+  - Pembuatan Daftar Pustaka (`/tools/daftar-pustaka`)
+- **17 tools** use iframe to `calmade.ai` → ❌ BLOCKED (DNS does not exist)
+  - All remaining tools in `/tools/[slug]`
+- **Architecture decision pending** — see ARCHITECTURE-DECISION.md
+  - Option A: Deploy calmade.ai (iframe approach)
+  - Option B: Replace iframe with direct Anthropic API (recommended)
+  - Option C: Hybrid (minimal Calmade AI for iframe)
 
 ### Tech Stack
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Frontend:** Next.js 16 (App Router), TypeScript, Tailwind CSS v4
 - **Database:** PostgreSQL with Prisma ORM
-- **Authentication:** NextAuth.js with Email Magic Link (via Mayar)
+- **Authentication:** NextAuth v5 with Email Magic Link (via Resend), Google OAuth optional
 - **Payments:** Midtrans Snap Checkout
+- **AI:** Anthropic Claude API (direct) for 3 tools; iframe to calmade.ai (BLOCKED) for 17 tools
 
 ## Pages & Features
 
@@ -63,8 +71,9 @@ All implemented as iframe containers pointing to Calmade AI:
 20. Konversi ke Artikel Ilmiah [PRO]
 
 ### Login (`/auth/signin`)
-- Email magic link via Mayar platform
-- 8-step login instructions displayed
+- Email magic link via Resend
+- Google OAuth (optional)
+- Session managed via NextAuth v5
 
 ### Pricing (`/pricing`)
 - BASIC: Rp 19.000/mo - 7 AI tools (free trial)
@@ -135,17 +144,20 @@ model Article {
 DATABASE_URL=postgresql://user:password@host:5432/gipsyai
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-here
+GOOGLE_CLIENT_ID=xxx
+GOOGLE_CLIENT_SECRET=xxx
 AUTH_RESEND_KEY=re_xxxxx
-MAYAR_API_KEY=xxx
-MIDTRANS_SERVER_KEY SB-Mid-server-xxxxx
-MIDTRANS_CLIENT_KEY SB-Mid-client-xxxxx
+MIDTRANS_SERVER_KEY=SB-Mid-server-xxxxx
+MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxx
 MIDTRANS_ENV=sandbox
-CALMADE_AI_URL=https://calmade.ai/chat
+ANTHROPIC_API_KEY=sk-ant-xxxxx
 ```
 
 ## Implementation Notes
 
 1. Tools marked [PRO] require PRO tier or higher
-2. Free tier gets 7 basic tools only
-3. iframe src constructed as: `${CALMADE_AI_URL}?tool=${toolSlug}&mode=iframe`
-4. All forms are structured - no free-form prompting needed
+2. Free/BASIC tier gets 7 tools (5 daily limit)
+3. PRO/PRO_RESEARCHER get unlimited access to all working tools
+4. Tier naming: `BASIC` (Rp 19k), `PRO` (Rp 19k flash), `PRO_RESEARCHER` (Rp 29k)
+5. Direct API tools use rate limiting via `prisma.toolUsage` count per day
+6. iframe tools blocked — see ARCHITECTURE-DECISION.md for resolution path
