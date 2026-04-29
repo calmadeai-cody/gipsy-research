@@ -1,10 +1,19 @@
 import { Anthropic } from '@anthropic-ai/sdk'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+// Create client lazily to allow proper mocking in tests
+let _anthropic: Anthropic | null = null
+
+function getAnthropicClient(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    })
+  }
+  return _anthropic
+}
 
 export async function generateResearchTitle(keywords: string, count: number = 5): Promise<string[]> {
+  const client = getAnthropicClient()
   const prompt = `Buatkan ${count} judul penelitian akademik dalam Bahasa Indonesia berdasarkan kata kunci: "${keywords}"
 
 Format output sebagai JSON array of strings, contoh:
@@ -18,7 +27,7 @@ Judul harus:
 
 Hanya output JSON array, tanpa penjelasan.`
 
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
@@ -33,6 +42,7 @@ Hanya output JSON array, tanpa penjelasan.`
 }
 
 export async function paraphraseParagraph(paragraph: string): Promise<string> {
+  const client = getAnthropicClient()
   const prompt = `Parafrase paragraf berikut menjadi versi baru dengan makna yang sama tapi kalimat berbeda:
 
 "${paragraph}"
@@ -45,7 +55,7 @@ Aturan:
 
 Hanya output teks hasil parafrase, tanpa kutipan atau penjelasan.`
 
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
@@ -55,6 +65,7 @@ Hanya output teks hasil parafrase, tanpa kutipan atau penjelasan.`
 }
 
 export async function generateBibliography(content: string, style: string = 'APA'): Promise<string[]> {
+  const client = getAnthropicClient()
   const prompt = `Dari artikel/konten berikut, generate daftar pustaka (bibliografi) dengan format ${style}:
 
 "${content}"
@@ -65,7 +76,7 @@ Contoh format MLA: "Nama, Nama. 'Judul Artikel.' Nama Jurnal, vol. nomor, no. no
 
 Hanya output JSON array, tanpa penjelasan.`
 
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
@@ -77,4 +88,9 @@ Hanya output JSON array, tanpa penjelasan.`
   } catch {
     return text.split('\n').filter(line => line.trim().length > 10)
   }
+}
+
+// Export for testing
+export function resetAnthropicClient(): void {
+  _anthropic = null
 }
