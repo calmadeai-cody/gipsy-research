@@ -17,15 +17,15 @@ export default async function DashboardPage() {
     include: { subscription: true, toolUsage: { orderBy: { createdAt: 'desc' }, take: 10 } }
   })
 
-  const tier = (session.user as { tier?: string })?.tier || 'FREE'
+  const tier = (session.user as { tier?: string })?.tier || 'BASIC'
   const subscriptionStatus = (session.user as { subscriptionStatus?: string })?.subscriptionStatus || 'inactive'
 
-  const dailyLimits = {
-    FREE: 5,
-    LITE: 50,
+  const dailyLimits: Record<string, number> = {
+    BASIC: 10,
     PRO: Infinity,
+    PRO_RESEARCHER: Infinity,
   }
-  const dailyLimit = dailyLimits[tier as keyof typeof dailyLimits] || 5
+  const dailyLimit = dailyLimits[tier] ?? 10
 
   const todayUsage = user?.toolUsage.filter(
     t => t.createdAt.toDateString() === new Date().toDateString()
@@ -44,16 +44,16 @@ export default async function DashboardPage() {
       slug: 'paraphrase',
       description: 'Parafrase paragraf dengan AI',
       icon: '✍️',
-      available: tier !== 'FREE',
-      limitNote: tier === 'FREE' ? 'Upgrade ke Lite/Pro' : null,
+      available: tier !== 'BASIC' || subscriptionStatus === 'active',
+      limitNote: tier === 'BASIC' && subscriptionStatus !== 'active' ? 'Free trial habis' : null,
     },
     {
       name: 'Generator Daftar Pustaka',
       slug: 'daftar-pustaka',
       description: 'Buatkan referensi bibliografi',
       icon: '📖',
-      available: tier !== 'FREE',
-      limitNote: tier === 'FREE' ? 'Upgrade ke Lite/Pro' : null,
+      available: tier !== 'BASIC' || subscriptionStatus === 'active',
+      limitNote: tier === 'BASIC' && subscriptionStatus !== 'active' ? 'Free trial habis' : null,
     },
   ]
 
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                     <div className="text-center">
                       <span className="text-sm text-gray-500">{tool.limitNote}</span>
                       <Link
-                        href="/payment?tier=LITE"
+                        href="/payment?tier=BASIC"
                         className="block mt-2 py-2 border border-purple-500 text-purple-400 hover:bg-purple-500/10 rounded-xl font-medium transition text-sm"
                       >
                         Upgrade

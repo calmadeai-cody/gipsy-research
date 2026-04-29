@@ -6,9 +6,9 @@ import { generateResearchTitle } from '@/lib/ai'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
   const limits: Record<string, number> = {
-    FREE: 5,
-    LITE: 50,
+    BASIC: 5,
     PRO: Infinity,
+    PRO_RESEARCHER: Infinity,
   }
   const limit = limits[tier] || 5
   
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const tier = (session.user as { tier?: string })?.tier || 'FREE'
+    const tier = (session.user as { tier?: string })?.tier || 'BASIC'
     const limitCheck = await checkDailyLimit(user.id, tier, 'generate-title')
     
     if (!limitCheck.allowed) {

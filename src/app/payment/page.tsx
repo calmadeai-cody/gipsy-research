@@ -4,20 +4,27 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect, Suspense } from 'react'
 
-const TIER_INFO = {
-  LITE: {
-    name: 'Lite',
-    price: 199000,
-    priceDisplay: 'Rp 199.000',
+const TIER_INFO: Record<string, { name: string; price: number; priceDisplay: string; period: string; description: string }> = {
+  BASIC: {
+    name: 'Basic',
+    price: 19000,
+    priceDisplay: 'Rp 19.000',
     period: 'per bulan',
-    description: 'Akses semua tool AI dengan 50x penggunaan per hari.',
+    description: '7 AI tools untuk mahasiswa yang baru mulai riset. Free trial 3 hari.',
   },
   PRO: {
     name: 'Pro',
-    price: 499000,
-    priceDisplay: 'Rp 499.000',
+    price: 19000, // FLASH SALE 50% — original: 39000
+    priceDisplay: 'Rp 19.000',
     period: 'per bulan',
-    description: 'Akses tak terbatas ke semua tool AI dan fitur premium.',
+    description: '40+ AI tools dengan akses tak terbatas. FLASH SALE 50%!',
+  },
+  PRO_RESEARCHER: {
+    name: 'Pro Researcher',
+    price: 29000, // FLASH SALE — original: 49000
+    priceDisplay: 'Rp 29.000',
+    period: 'per bulan',
+    description: '40+ AI tools + 10+ certified classes + personal mentoring.',
   },
 }
 
@@ -44,9 +51,9 @@ interface SnapWindow extends Window {
 
 function PaymentForm() {
   const searchParams = useSearchParams()
-  const tierParam = searchParams.get('tier') || 'LITE'
-  const tier = (tierParam.toUpperCase() === 'PRO' ? 'PRO' : 'LITE') as 'LITE' | 'PRO'
-  const info = TIER_INFO[tier]
+  const tierParam = searchParams.get('tier') || 'BASIC'
+  const tier = (tierParam.toUpperCase().replace(' ', '_') as keyof typeof TIER_INFO) || 'BASIC'
+  const info = TIER_INFO[tier] ?? TIER_INFO['BASIC']
   const [, setSnapToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

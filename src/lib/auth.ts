@@ -62,7 +62,7 @@ export const authOptions: NextAuthOptions = {
         const subscription = await prisma.subscription.findUnique({
           where: { userId: user.id },
         })
-        extUser.tier = subscription?.tier || 'FREE'
+        extUser.tier = subscription?.tier || 'BASIC'
         extUser.subscriptionStatus = subscription?.status || 'inactive'
       }
       return session

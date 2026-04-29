@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const { tier } = await request.json()
     
-    if (!tier || !['LITE', 'PRO'].includes(tier)) {
+    if (!tier || !['BASIC', 'PRO', 'PRO_RESEARCHER'].includes(tier)) {
       return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })
     }
 

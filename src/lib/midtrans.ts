@@ -13,17 +13,19 @@ export function generateOrderId(tier: string): string {
 }
 
 export const TIER_PRICES: Record<string, number> = {
-  LITE: 199000,
-  PRO: 499000,
+  BASIC: 19000,
+  PRO: 19000, // FLASH SALE 50% — original was 39000
+  PRO_RESEARCHER: 29000, // FLASH SALE — original was 49000
 }
 
 export const TIER_NAMES: Record<string, string> = {
-  LITE: 'Lite',
+  BASIC: 'Basic',
   PRO: 'Pro',
+  PRO_RESEARCHER: 'Pro Researcher',
 }
 
 export function getEnabledPayments(tier: string): string[] {
-  if (tier === 'PRO') {
+  if (tier === 'PRO' || tier === 'PRO_RESEARCHER') {
     return [
       'credit_card',
       'gopay',
