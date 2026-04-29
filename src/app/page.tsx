@@ -340,7 +340,7 @@ export default function HomePage() {
                     <span key={i} className={i < Math.floor(t.rating) ? 'text-yellow-400' : 'text-gray-600'}>★</span>
                   ))}
                 </div>
-                <p className="text-gray-300 mb-4">"{t.text}"</p>
+                <p className="text-gray-300 mb-4">&quot;{t.text}&quot;</p>
                 <div>
                   <div className="font-medium">{t.name}</div>
                   <div className="text-gray-500 text-sm">{t.role}</div>

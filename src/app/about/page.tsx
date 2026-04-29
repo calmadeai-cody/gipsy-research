@@ -56,9 +56,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-center mb-10">Visi Kami</h2>
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
             <p className="text-lg text-gray-300 leading-relaxed">
-              "Menjadi platform AI akademik terdepan di Asia Tenggara yang memberdayakan 
-              setiap peneliti dan mahasiswa untuk menghasilkan penelitian berkualitas tinggi 
-              dengan efisiensi tinggi dan akses yang merata."
+&quot;Menjadi platform AI akademik terdepan di Asia Tenggara yang memberdayakan setiap peneliti dan mahasiswa untuk menghasilkan penelitian berkualitas tinggi dengan efisiensi tinggi dan akses yang merata.&quot;
             </p>
           </div>
         </div>
