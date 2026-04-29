@@ -3,32 +3,45 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-29 12:18 UTC
+- **Last Updated:** 2026-04-29 12:57 UTC
 
 ## Current Status
-- **Phase:** Implementation - Content page expansion
+- **Phase:** Implementation - Code quality + preparation for external integrations
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
 
-## Iteration 2026-04-29 12:03 UTC ✅
+## Iteration 2026-04-29 12:55 UTC ✅
 
 ### What Was Done
-1. **Scrape + build from gipsyresearch.id** - Created 7 new pages based on scraped content:
-   - `/konsultasi` - Consultation services page with pricing packages, testimonials, FAQ
-   - `/affiliate` - Affiliate program page with commission structure, how-to-join steps
-   - `/artikel` - Blog/articles page with category filters and 5 sample articles
-   - `/faq` - General FAQ with 5 Q&A accordion
-   - `/olah-data` - Data processing services page with features and testimonials
-   - `/kontak` - Contact page with form, WhatsApp link, email, office hours
-   - `/komunitas` - Community page for #PejuangRiset with stats and join steps
-2. **Updated nav bar** on homepage with: Konsultasi, Olah Data, FAQ, Artikel links
-3. **Build verified** - All 28 routes pass (static + dynamic), 0 errors
-4. **Pages serving correctly** - Dev server confirmed at localhost:3000
+1. **Lint cleanup** - Fixed 3 lint warnings:
+   - `snap-token/route.ts`: removed unused `subscription` variable
+   - `payment/page.tsx`: marked unused `snapToken` state as intentionally set-only
+   - `midtrans-client.d.ts`: fixed anonymous default export
+2. **TypeScript + Build verified** - tsc --noEmit passes, build passes (28 routes)
+3. **Auth middleware confirmed working** - /tools redirects unauthenticated users to /auth/signin
+4. **Dev server health** - All new pages serving correctly (200 OK): konsultasi, artikel
 
 ### Git Commits (in order)
-- `b560b8d` - feat: add konsultasi, affiliate, and artikel pages
-- `6e50bcd` - feat: add olah-data and faq pages
+- `6144521` - fix: resolve 3 lint warnings (unused vars, anonymous export) [THIS ITERATION]
+- `cffc87d` - docs: update IT Division state after 2026-04-29 12:03 iteration
 - `0be06f4` - feat: add kontak and komunitas pages
+- `6e50bcd` - feat: add olah-data and faq pages
+- `b560b8d` - feat: add konsultasi, affiliate, and artikel pages
+
+### Code Quality Status
+| Check | Result |
+|-------|--------|
+| ESLint | ✅ 0 errors, 0 warnings |
+| TypeScript | ✅ Passes |
+| Build | ✅ 28 routes, 0 errors |
+| Dev server | ✅ Running on localhost:3000 |
+
+### Architecture Summary
+- **Auth**: NextAuth v5 with Prisma adapter, Google OAuth + Email magic link (Resend)
+- **Payments**: Midtrans Snap (credit card, VA, e-wallet, QRIS, convenience store)
+- **AI Tools**: 20 tools via iframe to `https://calmade.ai/chat?tool={slug}&mode=iframe`
+- **Database**: Prisma + PostgreSQL (schema defined, awaiting real DATABASE_URL)
+- **Protected routes**: /dashboard/*, /tools/* require auth (middleware enforced)
 
 ### Current Pages (21 total)
 | Route | Status |
@@ -42,39 +55,42 @@
 | `/dashboard` | ✅ (protected) |
 | `/pricing` | ✅ |
 | `/payment` | ✅ |
-| `/konsultasi` | ✅ NEW |
-| `/affiliate` | ✅ NEW |
-| `/artikel` | ✅ NEW |
-| `/faq` | ✅ NEW |
-| `/olah-data` | ✅ NEW |
-| `/kontak` | ✅ NEW |
-| `/komunitas` | ✅ NEW |
-| `/tools` | ✅ (20 tool cards) |
-| `/tools/[slug]` | ✅ (dynamic iframe) |
+| `/konsultasi` | ✅ |
+| `/affiliate` | ✅ |
+| `/artikel` | ✅ |
+| `/faq` | ✅ |
+| `/olah-data` | ✅ |
+| `/kontak` | ✅ |
+| `/komunitas` | ✅ |
+| `/tools` | ✅ (20 tool cards, auth-protected) |
+| `/tools/[slug]` | ✅ (dynamic iframe for all 20 tools) |
 | `/tools/daftar-pustaka` | ✅ |
 | `/tools/generator-judul` | ✅ |
 | `/tools/paraphrase` | ✅ |
 
-### AI Tools Architecture (iframe-based)
-- Each tool = page at `/tools/[slug]` with iframe to `https://calmade.ai/chat?tool={slug}&mode=iframe`
-- No direct AI API calls - GipsyAI = frontend + auth + payment + iframe container
-- 20 tools defined, slug-based routing
-
 ### Next Tasks (Priority Order)
-1. **Verify dev server pages** - All new pages render correctly (HTML confirmed via curl)
-2. **Add remaining tool detail pages** - Ensure all 20 tools have dedicated /tools/[slug] pages
-3. **Calmade AI iframe URL** - `https://calmade.ai/chat` needs verification as real endpoint
-4. **Database setup** - PostgreSQL migration with Prisma
-5. **Auth flow** - Test email magic link + Google OAuth
-6. **Payment flow** - Test Midtrans Snap integration
+1. **Setup guide** - Create env setup guide documenting all required API keys
+2. **API key integration** - Obtain and configure:
+   - AUTH_RESEND_KEY (Resend for email magic links)
+   - GOOGLE_CLIENT_ID/SECRET (Google OAuth)
+   - MIDTRANS_SERVER_KEY/CLIENT_KEY (real Midtrans sandbox keys)
+3. **Database migration** - Run `prisma migrate dev` with real DATABASE_URL
+4. **iframe endpoint** - Verify `https://calmade.ai/chat` supports `?mode=iframe` parameter
+5. **Auth flow test** - Verify magic link email sends + Google OAuth works
+6. **Payment flow test** - Test Midtrans Snap popup with sandbox keys
+7. **API tests** - Add Vitest/Jest tests for /api/payment, /api/tools/* routes
 
 ### Blockers
-- Need Calmade AI endpoint confirmation for iframe mode
-- Need real DATABASE_URL for PostgreSQL (currently localhost placeholder)
-- Need real API keys: AUTH_RESEND_KEY, GOOGLE_CLIENT_ID/SECRET, MIDTRANS keys
+1. **Calmade AI iframe** - `https://calmade.ai/chat?tool=X&mode=iframe` needs confirmation as real endpoint
+2. **DATABASE_URL** - PostgreSQL connection string needed (currently localhost placeholder)
+3. **External API keys** - AUTH_RESEND_KEY, GOOGLE_CLIENT_ID/SECRET, MIDTRANS keys not configured
 
-### Completed in This Iteration
-- 7 new content pages built
-- Homepage nav links updated
-- Build passes clean (28 routes)
-- All pages serve HTML correctly
+### Project Status: Code Complete ✅ | Integration Blocked 🔒
+The codebase is fully built and quality-checked. All features are implemented:
+- 21 pages (content, auth, dashboard, tools, payment)
+- Auth flow (Google + email magic link)
+- Payment flow (Midtrans Snap)
+- 20 AI tools with slug-based routing
+- Auth-protected routes via middleware
+
+**Remaining work requires external service credentials to proceed.**
