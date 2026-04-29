@@ -105,9 +105,10 @@ export default function HomePage() {
             <span className="text-xl font-bold">GipsyAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <Link href="#tools" className="text-gray-400 hover:text-white transition">AI Tools</Link>
-            <Link href="#cara-pakai" className="text-gray-400 hover:text-white transition">Cara Pakai</Link>
-            <Link href="/about" className="text-gray-400 hover:text-white transition">About</Link>
+            <Link href="/#tools" className="text-gray-400 hover:text-white transition">AI Tools</Link>
+            <Link href="/#cara-pakai" className="text-gray-400 hover:text-white transition">Cara Pakai</Link>
+            <Link href="/konsultasi" className="text-gray-400 hover:text-white transition">Konsultasi</Link>
+            <Link href="/artikel" className="text-gray-400 hover:text-white transition">Artikel</Link>
             <Link href="/pricing" className="text-gray-400 hover:text-white transition">Harga</Link>
           </div>
           <div className="flex items-center gap-4">
