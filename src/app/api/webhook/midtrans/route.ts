@@ -4,7 +4,7 @@ import crypto from 'crypto'
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || ''
 
-function verifySignature(payload: Record<string, any>): boolean {
+function verifySignature(payload: Record<string, string>): boolean {
   const { order_id, status_code, gross_amount, signature_key } = payload
   
   const mySignature = crypto
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    const { order_id, transaction_status, transaction_id, gross_amount, payment_type } = payload
+    const { order_id, transaction_status, transaction_id, gross_amount } = payload
     
     console.log('Midtrans webhook:', { order_id, transaction_status, gross_amount })
 

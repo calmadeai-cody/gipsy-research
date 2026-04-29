@@ -7,6 +7,12 @@ import { prisma } from './prisma'
 
 const resend = new Resend(process.env.AUTH_RESEND_KEY)
 
+interface ExtendedUser {
+  id: string
+  tier?: string
+  subscriptionStatus?: string
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -24,7 +30,7 @@ export const authOptions: NextAuthOptions = {
         },
       },
       from: 'GipsyAI <noreply@gipsyai.com>',
-      sendVerificationRequest: async ({ identifier, url, provider }) => {
+      sendVerificationRequest: async ({ identifier, url }) => {
         const { error } = await resend.emails.send({
           from: 'GipsyAI <noreply@gipsyai.com>',
           to: identifier,
@@ -50,13 +56,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, user }) {
       if (session.user) {
-        ;(session.user as any).id = user.id
+        const extUser = session.user as ExtendedUser
+        extUser.id = user.id
         // Get subscription
         const subscription = await prisma.subscription.findUnique({
           where: { userId: user.id },
         })
-        ;(session.user as any).tier = subscription?.tier || 'FREE'
-        ;(session.user as any).subscriptionStatus = subscription?.status || 'inactive'
+        extUser.tier = subscription?.tier || 'FREE'
+        extUser.subscriptionStatus = subscription?.status || 'inactive'
       }
       return session
     },

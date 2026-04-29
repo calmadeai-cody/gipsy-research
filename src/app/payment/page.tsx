@@ -21,6 +21,27 @@ const TIER_INFO = {
   },
 }
 
+interface SnapResult {
+  order_id?: string
+  transaction_id?: string
+  transaction_status?: string
+  status_message?: string
+}
+
+interface SnapCallbacks {
+  onSuccess: (result: SnapResult) => void
+  onPending: (result: SnapResult) => void
+  onError: (result: SnapResult) => void
+  onClose: () => void
+}
+
+// Extend Window interface for Midtrans Snap
+interface SnapWindow extends Window {
+  snap?: {
+    pay(token: string, callbacks: SnapCallbacks): void
+  }
+}
+
 function PaymentForm() {
   const searchParams = useSearchParams()
   const tierParam = searchParams.get('tier') || 'LITE'
@@ -59,17 +80,17 @@ function PaymentForm() {
         if (snapUrl) {
           window.location.href = snapUrl
         } else {
-          if ((window as any).snap) {
-            (window as any).snap.pay(data.token, {
-              onSuccess: (result: any) => {
+          if ((window as SnapWindow).snap) {
+            (window as SnapWindow).snap!.pay(data.token, {
+              onSuccess: (result: SnapResult) => {
                 console.log('Payment success:', result)
                 window.location.href = '/dashboard?payment=success'
               },
-              onPending: (result: any) => {
+              onPending: (result: SnapResult) => {
                 console.log('Payment pending:', result)
                 window.location.href = '/dashboard?payment=pending'
               },
-              onError: (result: any) => {
+              onError: (result: SnapResult) => {
                 console.error('Payment error:', result)
                 setError('Pembayaran gagal. Silakan coba lagi.')
                 setLoading(false)
@@ -78,7 +99,7 @@ function PaymentForm() {
                 console.log('Snap closed')
                 setLoading(false)
               },
-            })
+            } as SnapCallbacks)
           }
         }
       } else {

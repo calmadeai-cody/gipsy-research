@@ -17,8 +17,8 @@ export default async function DashboardPage() {
     include: { subscription: true, toolUsage: { orderBy: { createdAt: 'desc' }, take: 10 } }
   })
 
-  const tier = (session.user as any)?.tier || 'FREE'
-  const subscriptionStatus = (session.user as any)?.subscriptionStatus || 'inactive'
+  const tier = (session.user as { tier?: string })?.tier || 'FREE'
+  const subscriptionStatus = (session.user as { subscriptionStatus?: string })?.subscriptionStatus || 'inactive'
 
   const dailyLimits = {
     FREE: 5,

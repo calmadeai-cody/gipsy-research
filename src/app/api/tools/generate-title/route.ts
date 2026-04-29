@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const tier = (session.user as any)?.tier || 'FREE'
+    const tier = (session.user as { tier?: string })?.tier || 'FREE'
     const limitCheck = await checkDailyLimit(user.id, tier, 'generate-title')
     
     if (!limitCheck.allowed) {
