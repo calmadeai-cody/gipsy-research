@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { trackUsage } from '@/lib/analytics'
 
 export default function DaftarPustakaPage() {
   const router = useRouter()
@@ -48,6 +49,8 @@ export default function DaftarPustakaPage() {
       const data = await response.json()
       if (response.ok) {
         setResults(data.references)
+        // Track usage
+        trackUsage('Generator Daftar Pustaka', content)
       } else {
         setError(data.error || 'Gagal menghasilkan daftar pustaka')
       }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { trackUsage } from '@/lib/analytics'
 
 export default function ParaphrasePage() {
   const router = useRouter()
@@ -47,6 +48,8 @@ export default function ParaphrasePage() {
       const data = await response.json()
       if (response.ok) {
         setResult(data.paraphrased)
+        // Track usage
+        trackUsage('Parafrase Paragraf', paragraph)
       } else {
         setError(data.error || 'Gagal memparafrase')
       }

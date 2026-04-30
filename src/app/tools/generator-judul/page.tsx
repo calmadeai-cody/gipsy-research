@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { trackUsage } from '@/lib/analytics'
 
 export default function GeneratorJudulPage() {
   const router = useRouter()
@@ -48,6 +49,8 @@ export default function GeneratorJudulPage() {
       const data = await response.json()
       if (response.ok) {
         setResults(data.titles)
+        // Track usage
+        trackUsage('Generator Judul Penelitian', keywords)
       } else {
         setError(data.error || 'Gagal menghasilkan judul')
       }
