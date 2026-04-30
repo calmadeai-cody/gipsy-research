@@ -3,14 +3,30 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-30 09:10 UTC
+- **Last Updated:** 2026-04-30 12:08 UTC
 
 ---
 
 ## Current Status
-- **Phase:** Implementation - Caching added
+- **Phase:** Implementation - Usage Analytics added
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
+
+---
+
+## Iteration 2026-04-30 12:08 UTC ✅
+
+### What Was Done
+1. **Usage Analytics Dashboard** — Added client-side analytics using localStorage:
+   - Created `src/lib/analytics.ts` with `trackUsage()`, `getUsageStats()`, `getPopularTools()`, `clearUsage()`, `getMostActiveTime()`
+   - Created `src/components/dashboard/UsageChart.tsx` with 7-day bar chart, top 3 tools, most active time
+   - Updated `src/app/dashboard/page.tsx` to use localStorage instead of Prisma (no DATABASE_URL needed)
+   - Added 12 new tests in `tests/lib/analytics.test.ts`
+2. **All 61 tests passing** — 12 analytics + 18 cache + 10 sanitize + 8 AI + 13 API
+3. **Build verified** — Compiles successfully
+
+### Git Commit
+- `6619cf6` - feat: add client-side usage analytics dashboard [THIS ITERATION]
 
 ---
 
@@ -22,16 +38,12 @@
    - TTL support (default 1 hour)
    - LRU eviction at 500 entries max
    - `generateCacheKey()`, `getCache()`, `setCache()`, `clearCache()`
-2. **Updated all 3 API routes** with caching:
-   - `generate-title/route.ts` — checks cache before AI call, includes `cached: true` in response
-   - `paraphrase/route.ts` — same pattern
-   - `generate-references/route.ts` — same pattern (key includes style)
+2. **Updated all 3 API routes** with caching
 3. **Added 18 new tests** in `tests/lib/cache.test.ts`
-4. **All 49 tests passing** — 18 cache + 10 sanitize + 8 AI lib + 13 API route tests
-5. **Build verified clean** — All routes compiling correctly
+4. **All 49 tests passing**
 
 ### Git Commit
-- `e554f71` - feat: add in-memory caching for AI API responses [THIS ITERATION]
+- `e554f71` - feat: add in-memory caching for AI API responses
 
 ---
 
@@ -41,10 +53,11 @@
 - **Tiers**: BASIC (Rp 19k), PRO (Rp 19k flash), PRO_RESEARCHER (Rp 29k) — unified
 - **AI Tools**: 3 tools via direct Anthropic API; 17 tools via iframe to calmade.ai (BLOCKED)
 - **Database**: Prisma + PostgreSQL (schema defined, needs real DATABASE_URL)
-- **Testing**: Vitest framework with 31 tests passing
+- **Testing**: Vitest framework with 61 tests passing
 - **Error Handling**: Structured ApiError class with error codes
 - **Input Sanitization**: sanitizeInput() + validateAIInput() in src/lib/sanitize.ts
 - **Response Caching**: In-memory cache with SHA-256 keys, TTL, LRU in src/lib/cache.ts
+- **Analytics**: Client-side localStorage tracking in src/lib/analytics.ts
 
 ---
 
@@ -55,7 +68,7 @@ All routes verified in build:
 | `/` (homepage) | ✅ |
 | `/about`, `/classes`, `/pricing` | ✅ |
 | `/auth/signin`, `/auth/error`, `/auth/verify-request` | ✅ |
-| `/dashboard` | ✅ (protected) |
+| `/dashboard` | ✅ (protected, uses localStorage analytics) |
 | `/payment` | ✅ (supports BASIC, PRO, PRO_RESEARCHER) |
 | `/konsultasi`, `/artikel`, `/affiliate`, `/faq`, `/olah-data`, `/kontak`, `/komunitas` | ✅ |
 | `/tools` | ✅ (20 tool cards) |
@@ -66,16 +79,17 @@ All routes verified in build:
 
 ---
 
-## Test Coverage (49 tests passing)
+## Test Coverage (61 tests passing)
 | Test File | Tests | Coverage |
 |-----------|-------|----------|
+| `tests/lib/analytics.test.ts` | 12 | Usage tracking, stats, popular tools |
 | `tests/lib/cache.test.ts` | 18 | Cache key generation, TTL, LRU eviction |
 | `tests/lib/sanitize.test.ts` | 10 | Input sanitization functions |
 | `tests/lib/ai.test.ts` | 8 | AI library functions |
 | `tests/api/tools/generate-title.test.ts` | 5 | Auth, validation, rate limiting |
 | `tests/api/tools/paraphrase.test.ts` | 4 | Auth, validation, tier access |
 | `tests/api/tools/generate-references.test.ts` | 4 | Auth, validation, style options |
-| **Total** | **49** | All passing |
+| **Total** | **61** | All passing |
 
 ---
 
@@ -85,9 +99,10 @@ All routes verified in build:
 1. ✅ Structured error responses — ApiError class with codes
 2. ✅ Input sanitization — sanitizeInput + validateAIInput
 3. ✅ API response caching — in-memory cache with TTL and LRU eviction
+4. ✅ Usage analytics dashboard — client-side localStorage tracking with 7-day chart
 
 ### Immediate (No External Dependencies)
-4. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
+5. **Add tool usage tracking integration** — Connect API routes to call `trackUsage()` when tools are used
 
 ### Blocked on External Services (Need Credentials)
 1. **Database migration** — Run `prisma migrate dev` with real DATABASE_URL
@@ -124,16 +139,17 @@ All routes verified in build:
 | Tier System Unified | ✅ |
 | Build Verified | ✅ |
 | Lint Clean | ✅ |
-| Test Framework | ✅ (Vitest, 49 passing) |
+| Test Framework | ✅ (Vitest, 61 passing) |
 | Structured Errors | ✅ |
 | Input Sanitization | ✅ |
 | Response Caching | ✅ |
+| Usage Analytics | ✅ |
 | Documentation | ✅ |
 | Integration Ready | 🔒 Blocked on credentials |
 | 17 Tools Working | ❌ Blocked on calmade.ai decision |
 
 ---
 
-**Summary:** Added in-memory response caching with SHA-256 hashed keys, TTL, and LRU eviction. All 49 tests passing. Build verified clean. Next logical step is usage analytics dashboard.
+**Summary:** Added client-side usage analytics dashboard with 7-day bar chart, top 3 tools, and most active time. Dashboard no longer depends on Prisma/DATABASE_URL. All 61 tests passing. Build verified clean. Next: integrate trackUsage() into API routes so analytics actually record tool usage.
 
-**Progress since last iteration:** Added cache.ts with generateCacheKey/getCache/setCache/clearCache. Updated all 3 API routes with cache checks. Added 18 new tests. Committed as e554f71.
+**Progress since last iteration:** Added client-side usage analytics with 7-day chart, top tools, and activity time. Dashboard no longer depends on Prisma/DATABASE_URL. All 61 tests passing. Committed as 6619cf6.
