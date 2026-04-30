@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateResearchTitle } from '@/lib/ai'
+import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
@@ -44,7 +45,9 @@ export async function POST(request: NextRequest) {
 
     const { keywords, count = 5 } = await request.json()
     
-    if (!keywords) {
+    const sanitizedKeywords = sanitizeInput(keywords)
+    
+    if (!sanitizedKeywords) {
       return NextResponse.json(new ApiError('Keywords required', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
     }
 
@@ -67,14 +70,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const titles = await generateResearchTitle(keywords, count)
+    const titles = await generateResearchTitle(sanitizedKeywords, count)
     
     // Log usage
     await prisma.toolUsage.create({
       data: {
         userId: user.id,
         toolName: 'generate-title',
-        inputText: keywords,
+        inputText: sanitizedKeywords,
         outputText: titles.join('\n'),
       },
     })

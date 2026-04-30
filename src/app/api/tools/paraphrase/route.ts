@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { paraphraseParagraph } from '@/lib/ai'
+import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
@@ -48,8 +49,10 @@ export async function POST(request: NextRequest) {
 
     const { paragraph } = await request.json()
     
-    if (!paragraph) {
-      return NextResponse.json(new ApiError('Paragraph required', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
+    const sanitizedParagraph = sanitizeInput(paragraph)
+    
+    if (!sanitizedParagraph) {
+      return NextResponse.json(new ApiError('Invalid paragraph input', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
     }
 
     const userEmail = session.user.email
@@ -79,14 +82,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const paraphrased = await paraphraseParagraph(paragraph)
+    const paraphrased = await paraphraseParagraph(sanitizedParagraph)
     
     // Log usage
     await prisma.toolUsage.create({
       data: {
         userId: user.id,
         toolName: 'paraphrase',
-        inputText: paragraph.substring(0, 500),
+        inputText: sanitizedParagraph.substring(0, 500),
         outputText: paraphrased,
       },
     })

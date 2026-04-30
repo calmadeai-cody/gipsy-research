@@ -3,36 +3,36 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-30 00:10 UTC
+- **Last Updated:** 2026-04-30 03:09 UTC
 
 ---
 
 ## Current Status
-- **Phase:** Implementation - API route tests added
+- **Phase:** Implementation - Structured error responses added
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
 
 ---
 
-## Iteration 2026-04-30 00:10 UTC ✅
+## Iteration 2026-04-30 03:09 UTC ✅
 
 ### What Was Done
-1. **Added API route tests** — 3 test files, 13 new tests
-   - `tests/api/tools/generate-title.test.ts` (5 tests)
-   - `tests/api/tools/paraphrase.test.ts` (4 tests)
-   - `tests/api/tools/generate-references.test.ts` (4 tests)
-2. **Tests cover:**
-   - Auth validation (401 on no session)
-   - Input validation (400 on missing fields)
-   - Success responses (200 with proper data)
-   - Tier-based rate limiting (BASIC limit enforcement)
-   - PRO tier unlimited access
-3. **All 21 tests passing** — 8 AI library + 13 API route tests
+1. **Structured Error Responses** — Created ApiError class and ErrorCodes in `src/lib/api-error.ts`
+   - ApiError class with code, message, details, statusCode, and toJSON()
+   - Error codes: UNAUTHORIZED, USER_NOT_FOUND, VALIDATION_ERROR, TIER_ACCESS_DENIED, RATE_LIMIT_EXCEEDED, INTERNAL_ERROR
+2. **Updated all 3 API routes** to use structured errors:
+   - `generate-title/route.ts` — validation and auth errors
+   - `paraphrase/route.ts` — validation, tier access, rate limit errors
+   - `generate-references/route.ts` — validation and auth errors
+3. **Fixed test** — Updated `generate-title.test.ts` line 87 to use `data.error.message` instead of `data.error` for object format
+4. **All 21 tests passing** — 8 AI library + 13 API route tests
+5. **Build verified clean** — All routes compiling correctly
 
 ### Git Commits
-- `ac188fd` - feat: add API route tests for tool endpoints (13 new tests) [THIS ITERATION]
+- `b997357` - refactor: add structured error responses to API routes [THIS ITERATION]
+- `2dfac22` - docs: update IT Division state after 2026-04-30 00:10 iteration
+- `ac188fd` - feat: add API route tests for tool endpoints (13 new tests)
 - `eaba96b` - docs: update IT Division state after 2026-04-29 21:06 iteration
-- `767bbb6` - feat: add Vitest test framework and AI library tests (8 passing)
 
 ---
 
@@ -43,6 +43,7 @@
 - **AI Tools**: 3 tools via direct Anthropic API; 17 tools via iframe to calmade.ai (BLOCKED)
 - **Database**: Prisma + PostgreSQL (schema defined, needs real DATABASE_URL)
 - **Testing**: Vitest framework with 21 tests passing
+- **Error Handling**: Structured ApiError class with error codes
 
 ---
 
@@ -67,7 +68,7 @@ All routes verified in build:
 ## Test Coverage (21 tests passing)
 | Test File | Tests | Coverage |
 |-----------|-------|----------|
-| `tests/lib/ai.test.ts` | 8 | AI library functions (generateResearchTitle, paraphraseParagraph, generateBibliography) |
+| `tests/lib/ai.test.ts` | 8 | AI library functions |
 | `tests/api/tools/generate-title.test.ts` | 5 | Auth, validation, rate limiting |
 | `tests/api/tools/paraphrase.test.ts` | 4 | Auth, validation, tier access |
 | `tests/api/tools/generate-references.test.ts` | 4 | Auth, validation, style options |
@@ -78,9 +79,10 @@ All routes verified in build:
 ## Next Tasks (Priority Order)
 
 ### Immediate (No External Dependencies)
-1. ✅ **API route tests** — Done this iteration (13 tests)
-2. **Improve error messages** — API routes return generic errors; add structured error responses
-3. **Add usage analytics** — Dashboard shows tier but no actual usage stats
+1. ✅ **Structured error responses** — Done this iteration
+2. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
+3. **Add input sanitization** — Prevent prompt injection in AI tool inputs
+4. **Add API response caching** — Cache repeated AI responses for same inputs
 
 ### Blocked on External Services (Need Credentials)
 1. **Database migration** — Run `prisma migrate dev` with real DATABASE_URL
@@ -118,12 +120,13 @@ All routes verified in build:
 | Build Verified | ✅ |
 | Lint Clean | ✅ |
 | Test Framework | ✅ (Vitest, 21 passing) |
-| Documentation | ✅ (SETUP.md, ARCHITECTURE-DECISION.md, SPEC.md current) |
+| Structured Errors | ✅ |
+| Documentation | ✅ |
 | Integration Ready | 🔒 Blocked on credentials |
 | 17 Tools Working | ❌ Blocked on calmade.ai decision |
 
 ---
 
-**Summary:** API route tests added (13 new tests, 21 total passing). Build and lint verified clean. Next logical step is improving error messages or usage analytics dashboard. Most tasks blocked on external credentials.
+**Summary:** Added structured error responses via ApiError class. All 21 tests passing. Build verified clean. Next logical step is enhancing the dashboard usage analytics or adding input sanitization.
 
-**Progress since last iteration:** Added API route tests for all 3 tool endpoints. Total test count: 21 passing.
+**Progress since last iteration:** Structured error responses implemented. Test updated to use object format. Committed as b997357.

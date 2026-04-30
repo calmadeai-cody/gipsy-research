@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateBibliography } from '@/lib/ai'
+import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
@@ -48,8 +49,10 @@ export async function POST(request: NextRequest) {
 
     const { content, style = 'APA' } = await request.json()
     
-    if (!content) {
-      return NextResponse.json(new ApiError('Content required', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
+    const sanitizedContent = sanitizeInput(content)
+    
+    if (!sanitizedContent) {
+      return NextResponse.json(new ApiError('Invalid content input', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
     }
 
     const userEmail = session.user.email
@@ -79,14 +82,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const references = await generateBibliography(content, style)
+    const references = await generateBibliography(sanitizedContent, style)
     
     // Log usage
     await prisma.toolUsage.create({
       data: {
         userId: user.id,
         toolName: 'generate-references',
-        inputText: content.substring(0, 500),
+        inputText: sanitizedContent.substring(0, 500),
         outputText: references.join('\n'),
       },
     })
