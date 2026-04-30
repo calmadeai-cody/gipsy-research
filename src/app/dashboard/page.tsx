@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import UsageChart from '@/components/dashboard/UsageChart'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
   const userEmail = session.user.email
   const user = await prisma.user.findUnique({
     where: { email: userEmail },
-    include: { subscription: true, toolUsage: { orderBy: { createdAt: 'desc' }, take: 10 } }
+    include: { subscription: true }
   })
 
   const tier = (session.user as { tier?: string })?.tier || 'BASIC'
@@ -26,10 +27,6 @@ export default async function DashboardPage() {
     PRO_RESEARCHER: Infinity,
   }
   const dailyLimit = dailyLimits[tier] ?? 10
-
-  const todayUsage = user?.toolUsage.filter(
-    t => t.createdAt.toDateString() === new Date().toDateString()
-  ).length || 0
 
   const tools = [
     {
@@ -83,30 +80,23 @@ export default async function DashboardPage() {
             <p className="text-gray-400">Selamat datang di GipsyAI, {user?.name || userEmail}</p>
           </div>
 
-          {/* Subscription Status */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-              <div className="text-sm text-gray-400 mb-2">Paket Aktif</div>
-              <div className="text-2xl font-bold gradient-text">{tier}</div>
-              <div className={`text-sm mt-1 ${subscriptionStatus === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
-                {subscriptionStatus === 'active' ? '● Aktif' : '○ Pending'}
+          {/* Subscription Status + Analytics */}
+          <div className="grid lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+                <div className="text-sm text-gray-400 mb-2">Paket Aktif</div>
+                <div className="text-2xl font-bold gradient-text">{tier}</div>
+                <div className={`text-sm mt-1 ${subscriptionStatus === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
+                  {subscriptionStatus === 'active' ? '● Aktif' : '○ Pending'}
+                </div>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+                <div className="text-sm text-gray-400 mb-2">Batas Harian</div>
+                <div className="text-2xl font-bold">{dailyLimit === Infinity ? '∞' : dailyLimit}</div>
+                <div className="text-sm text-gray-500 mt-1">kali/hari</div>
               </div>
             </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-              <div className="text-sm text-gray-400 mb-2">Penggunaan Hari Ini</div>
-              <div className="text-2xl font-bold">{todayUsage} / {dailyLimit === Infinity ? '∞' : dailyLimit}</div>
-              <div className="w-full bg-gray-800 rounded-full h-2 mt-2">
-                <div 
-                  className="bg-purple-600 h-2 rounded-full" 
-                  style={{ width: `${dailyLimit === Infinity ? 100 : Math.min((todayUsage / dailyLimit) * 100, 100)}%` }}
-                />
-              </div>
-            </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-              <div className="text-sm text-gray-400 mb-2">Total Penggunaan</div>
-              <div className="text-2xl font-bold">{user?.toolUsage.length || 0}</div>
-              <div className="text-sm text-gray-500 mt-1">kali</div>
-            </div>
+            <UsageChart />
           </div>
 
           {/* Tools */}
@@ -138,41 +128,6 @@ export default async function DashboardPage() {
                   )}
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div>
-            <h2 className="text-xl font-bold mb-4">Aktivitas Terakhir</h2>
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-              {user?.toolUsage.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  Belum ada aktivitas. Mulai gunakan tool AI!
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead className="bg-gray-800">
-                    <tr>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-gray-400">Tool</th>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-gray-400">Waktu</th>
-                      <th className="text-left px-6 py-3 text-sm font-medium text-gray-400">Input</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {user?.toolUsage.map((usage) => (
-                      <tr key={usage.id} className="border-t border-gray-800">
-                        <td className="px-6 py-4 text-sm">{usage.toolName}</td>
-                        <td className="px-6 py-4 text-sm text-gray-400">
-                          {usage.createdAt.toLocaleString('id-ID')}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-400 truncate max-w-xs">
-                          {usage.inputText.substring(0, 50)}...
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
             </div>
           </div>
         </div>
