@@ -84,7 +84,7 @@ describe('POST /api/tools/generate-title', () => {
     const response = await POST(request)
     expect(response.status).toBe(400)
     const data = await response.json()
-    expect(data.error).toContain('Keywords')
+    expect(data.error.message).toContain('Keywords')
   })
 
   it('should return titles on success', async () => {

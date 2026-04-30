@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateBibliography } from '@/lib/ai'
+import { ApiError, ErrorCodes } from '@/lib/api-error'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
   const limits: Record<string, number> = {
@@ -42,13 +43,13 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(new ApiError('Unauthorized', ErrorCodes.UNAUTHORIZED, 401).toJSON(), { status: 401 })
     }
 
     const { content, style = 'APA' } = await request.json()
     
     if (!content) {
-      return NextResponse.json({ error: 'Content required' }, { status: 400 })
+      return NextResponse.json(new ApiError('Content required', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
     }
 
     const userEmail = session.user.email
@@ -57,23 +58,25 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json(new ApiError('User not found', ErrorCodes.USER_NOT_FOUND, 404).toJSON(), { status: 404 })
     }
 
     const tier = (session.user as { tier?: string })?.tier || 'BASIC'
     
     if (tier === 'BASIC') {
-      return NextResponse.json({ 
-        error: 'Tool ini hanya tersedia untuk paket Pro dan Pro Researcher. Upgrade sekarang!' 
-      }, { status: 403 })
+      return NextResponse.json(
+        new ApiError('Tool ini hanya tersedia untuk paket Pro dan Pro Researcher. Upgrade sekarang!', ErrorCodes.TIER_ACCESS_DENIED, 403).toJSON(),
+        { status: 403 }
+      )
     }
 
     const limitCheck = await checkDailyLimit(user.id, tier, 'generate-references')
     
     if (!limitCheck.allowed) {
-      return NextResponse.json({ 
-        error: 'Batas penggunaan harian tercapai. Upgrade ke paket yang lebih tinggi.' 
-      }, { status: 429 })
+      return NextResponse.json(
+        new ApiError('Batas penggunaan harian tercapai. Upgrade ke paket yang lebih tinggi.', ErrorCodes.RATE_LIMIT_EXCEEDED, 429).toJSON(),
+        { status: 429 }
+      )
     }
 
     const references = await generateBibliography(content, style)
@@ -94,6 +97,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Generate references error:', error)
-    return NextResponse.json({ error: 'Failed to generate references' }, { status: 500 })
+    return NextResponse.json(new ApiError('Failed to generate references', ErrorCodes.INTERNAL_ERROR, 500).toJSON(), { status: 500 })
   }
 }
