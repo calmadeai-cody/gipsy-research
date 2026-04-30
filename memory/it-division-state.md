@@ -3,36 +3,36 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-29 21:06 UTC
+- **Last Updated:** 2026-04-30 00:10 UTC
 
 ---
 
 ## Current Status
-- **Phase:** Implementation - Testing infrastructure complete
+- **Phase:** Implementation - API route tests added
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
 
 ---
 
-## Iteration 2026-04-29 21:06 UTC ✅
+## Iteration 2026-04-30 00:10 UTC ✅
 
 ### What Was Done
-1. **Added Vitest test framework** — Testing infrastructure now in place
-   - Installed: vitest, @vitest/coverage-v8
-   - Config: vitest.config.ts with @ alias support
-   - Scripts: `npm test`, `npm run test:run`, `npm run test:coverage`
-2. **Made AI library testable** — Refactored src/lib/ai.ts:
-   - Lazy Anthropic client initialization via `getAnthropicClient()`
-   - `resetAnthropicClient()` for test isolation
-3. **Added 8 unit tests** — All passing:
-   - `generateResearchTitle`: 4 tests
-   - `paraphraseParagraph`: 2 tests
-   - `generateBibliography`: 2 tests
-4. **Verified** — Lint clean, build passes (28 routes)
+1. **Added API route tests** — 3 test files, 13 new tests
+   - `tests/api/tools/generate-title.test.ts` (5 tests)
+   - `tests/api/tools/paraphrase.test.ts` (4 tests)
+   - `tests/api/tools/generate-references.test.ts` (4 tests)
+2. **Tests cover:**
+   - Auth validation (401 on no session)
+   - Input validation (400 on missing fields)
+   - Success responses (200 with proper data)
+   - Tier-based rate limiting (BASIC limit enforcement)
+   - PRO tier unlimited access
+3. **All 21 tests passing** — 8 AI library + 13 API route tests
 
 ### Git Commits
-- `767bbb6` - feat: add Vitest test framework and AI library tests (8 passing) [THIS ITERATION]
-- `d7cf849` - docs: update IT Division state after 2026-04-29 18:03 iteration
+- `ac188fd` - feat: add API route tests for tool endpoints (13 new tests) [THIS ITERATION]
+- `eaba96b` - docs: update IT Division state after 2026-04-29 21:06 iteration
+- `767bbb6` - feat: add Vitest test framework and AI library tests (8 passing)
 
 ---
 
@@ -42,7 +42,7 @@
 - **Tiers**: BASIC (Rp 19k), PRO (Rp 19k flash), PRO_RESEARCHER (Rp 29k) — unified
 - **AI Tools**: 3 tools via direct Anthropic API; 17 tools via iframe to calmade.ai (BLOCKED)
 - **Database**: Prisma + PostgreSQL (schema defined, needs real DATABASE_URL)
-- **Testing**: Vitest framework added, 8 tests passing
+- **Testing**: Vitest framework with 21 tests passing
 
 ---
 
@@ -64,10 +64,21 @@ All routes verified in build:
 
 ---
 
+## Test Coverage (21 tests passing)
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `tests/lib/ai.test.ts` | 8 | AI library functions (generateResearchTitle, paraphraseParagraph, generateBibliography) |
+| `tests/api/tools/generate-title.test.ts` | 5 | Auth, validation, rate limiting |
+| `tests/api/tools/paraphrase.test.ts` | 4 | Auth, validation, tier access |
+| `tests/api/tools/generate-references.test.ts` | 4 | Auth, validation, style options |
+| **Total** | **21** | All passing |
+
+---
+
 ## Next Tasks (Priority Order)
 
 ### Immediate (No External Dependencies)
-1. **Add API route tests** — Test the 3 API routes (generate-title, paraphrase, generate-references)
+1. ✅ **API route tests** — Done this iteration (13 tests)
 2. **Improve error messages** — API routes return generic errors; add structured error responses
 3. **Add usage analytics** — Dashboard shows tier but no actual usage stats
 
@@ -106,13 +117,13 @@ All routes verified in build:
 | Tier System Unified | ✅ |
 | Build Verified | ✅ |
 | Lint Clean | ✅ |
-| Test Framework | ✅ (Vitest, 8 passing) |
+| Test Framework | ✅ (Vitest, 21 passing) |
 | Documentation | ✅ (SETUP.md, ARCHITECTURE-DECISION.md, SPEC.md current) |
 | Integration Ready | 🔒 Blocked on credentials |
 | 17 Tools Working | ❌ Blocked on calmade.ai decision |
 
 ---
 
-**Summary:** Testing infrastructure added. AI library refactored for testability. 8 unit tests now passing. Build and lint verified clean. Next logical step is API route tests, then remaining tasks are blocked on external services/credentials.
+**Summary:** API route tests added (13 new tests, 21 total passing). Build and lint verified clean. Next logical step is improving error messages or usage analytics dashboard. Most tasks blocked on external credentials.
 
-**Progress since last iteration:** Added complete Vitest testing infrastructure with 8 passing tests.
+**Progress since last iteration:** Added API route tests for all 3 tool endpoints. Total test count: 21 passing.
