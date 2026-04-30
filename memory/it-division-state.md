@@ -3,36 +3,33 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-30 03:09 UTC
+- **Last Updated:** 2026-04-30 06:08 UTC
 
 ---
 
 ## Current Status
-- **Phase:** Implementation - Structured error responses added
+- **Phase:** Implementation - Input sanitization added
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
 
 ---
 
-## Iteration 2026-04-30 03:09 UTC ✅
+## Iteration 2026-04-30 06:08 UTC ✅
 
 ### What Was Done
-1. **Structured Error Responses** — Created ApiError class and ErrorCodes in `src/lib/api-error.ts`
-   - ApiError class with code, message, details, statusCode, and toJSON()
-   - Error codes: UNAUTHORIZED, USER_NOT_FOUND, VALIDATION_ERROR, TIER_ACCESS_DENIED, RATE_LIMIT_EXCEEDED, INTERNAL_ERROR
-2. **Updated all 3 API routes** to use structured errors:
-   - `generate-title/route.ts` — validation and auth errors
-   - `paraphrase/route.ts` — validation, tier access, rate limit errors
-   - `generate-references/route.ts` — validation and auth errors
-3. **Fixed test** — Updated `generate-title.test.ts` line 87 to use `data.error.message` instead of `data.error` for object format
-4. **All 21 tests passing** — 8 AI library + 13 API route tests
+1. **Input Sanitization** — Created `src/lib/sanitize.ts` with:
+   - `sanitizeInput()` - strips control chars, removes injection patterns, truncates to 5000 chars
+   - `validateAIInput()` - validates input length (2-5000 chars)
+2. **Updated all 3 API routes** to use sanitization:
+   - `generate-title/route.ts` — sanitizes keywords before AI call
+   - `paraphrase/route.ts` — sanitizes paragraph before AI call
+   - `generate-references/route.ts` — sanitizes content before AI call
+3. **Added 10 new tests** in `tests/lib/sanitize.test.ts`
+4. **All 31 tests passing** — 10 sanitize + 8 AI lib + 13 API route tests
 5. **Build verified clean** — All routes compiling correctly
 
-### Git Commits
-- `b997357` - refactor: add structured error responses to API routes [THIS ITERATION]
-- `2dfac22` - docs: update IT Division state after 2026-04-30 00:10 iteration
-- `ac188fd` - feat: add API route tests for tool endpoints (13 new tests)
-- `eaba96b` - docs: update IT Division state after 2026-04-29 21:06 iteration
+### Git Commit
+- `195d12d` - feat: add input sanitization to prevent prompt injection [THIS ITERATION]
 
 ---
 
@@ -42,8 +39,9 @@
 - **Tiers**: BASIC (Rp 19k), PRO (Rp 19k flash), PRO_RESEARCHER (Rp 29k) — unified
 - **AI Tools**: 3 tools via direct Anthropic API; 17 tools via iframe to calmade.ai (BLOCKED)
 - **Database**: Prisma + PostgreSQL (schema defined, needs real DATABASE_URL)
-- **Testing**: Vitest framework with 21 tests passing
+- **Testing**: Vitest framework with 31 tests passing
 - **Error Handling**: Structured ApiError class with error codes
+- **Input Sanitization**: sanitizeInput() + validateAIInput() in src/lib/sanitize.ts
 
 ---
 
@@ -61,27 +59,30 @@ All routes verified in build:
 | `/tools/[slug]` | ✅ (iframe — BLOCKED: calmade.ai down) |
 | `/tools/generator-judul`, `/tools/paraphrase`, `/tools/daftar-pustaka` | ✅ (direct API) |
 | `/api/payment/snap-token`, `/api/webhook/midtrans` | ✅ |
-| `/api/tools/generate-title`, `/api/tools/paraphrase`, `/api/tools/generate-references` | ✅ |
+| `/api/tools/generate-title`, `/api/tools/paraphrase`, `/api/tools/generate-references` | ✅ (with sanitization) |
 
 ---
 
-## Test Coverage (21 tests passing)
+## Test Coverage (31 tests passing)
 | Test File | Tests | Coverage |
 |-----------|-------|----------|
+| `tests/lib/sanitize.test.ts` | 10 | Input sanitization functions |
 | `tests/lib/ai.test.ts` | 8 | AI library functions |
 | `tests/api/tools/generate-title.test.ts` | 5 | Auth, validation, rate limiting |
 | `tests/api/tools/paraphrase.test.ts` | 4 | Auth, validation, tier access |
 | `tests/api/tools/generate-references.test.ts` | 4 | Auth, validation, style options |
-| **Total** | **21** | All passing |
+| **Total** | **31** | All passing |
 
 ---
 
 ## Next Tasks (Priority Order)
 
+### Completed ✅
+1. ✅ Structured error responses — ApiError class with codes
+2. ✅ Input sanitization — sanitizeInput + validateAIInput
+
 ### Immediate (No External Dependencies)
-1. ✅ **Structured error responses** — Done this iteration
-2. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
-3. **Add input sanitization** — Prevent prompt injection in AI tool inputs
+3. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
 4. **Add API response caching** — Cache repeated AI responses for same inputs
 
 ### Blocked on External Services (Need Credentials)
@@ -99,7 +100,7 @@ All routes verified in build:
 
 ### If Option B Chosen (Direct API)
 - Implement remaining 17 tools using direct Anthropic API
-- Pattern established by 3 working tools + tests
+- Pattern established by 3 working tools + sanitization
 
 ---
 
@@ -119,14 +120,15 @@ All routes verified in build:
 | Tier System Unified | ✅ |
 | Build Verified | ✅ |
 | Lint Clean | ✅ |
-| Test Framework | ✅ (Vitest, 21 passing) |
+| Test Framework | ✅ (Vitest, 31 passing) |
 | Structured Errors | ✅ |
+| Input Sanitization | ✅ |
 | Documentation | ✅ |
 | Integration Ready | 🔒 Blocked on credentials |
 | 17 Tools Working | ❌ Blocked on calmade.ai decision |
 
 ---
 
-**Summary:** Added structured error responses via ApiError class. All 21 tests passing. Build verified clean. Next logical step is enhancing the dashboard usage analytics or adding input sanitization.
+**Summary:** Added input sanitization via src/lib/sanitize.ts. All 31 tests passing. Build verified clean. Next logical step is usage analytics dashboard or API response caching.
 
-**Progress since last iteration:** Structured error responses implemented. Test updated to use object format. Committed as b997357.
+**Progress since last iteration:** Added sanitize.ts with sanitizeInput/validateAIInput functions. Updated all 3 API routes. Added 10 new tests. Committed as 195d12d.

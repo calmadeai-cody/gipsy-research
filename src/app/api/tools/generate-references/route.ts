@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { generateBibliography } from '@/lib/ai'
 import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
+import { generateCacheKey, getCache, setCache } from '@/lib/cache'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
   const limits: Record<string, number> = {
@@ -82,6 +83,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check cache first (before AI call)
+    const cacheKey = generateCacheKey('generate-references', sanitizedContent + ':' + style)
+    const cachedResult = getCache(cacheKey)
+    if (cachedResult) {
+      return NextResponse.json({
+        references: JSON.parse(cachedResult),
+        remaining: limitCheck.remaining === Infinity ? 'unlimited' : limitCheck.remaining - 1,
+        cached: true,
+      })
+    }
+
     const references = await generateBibliography(sanitizedContent, style)
     
     // Log usage
@@ -93,6 +105,9 @@ export async function POST(request: NextRequest) {
         outputText: references.join('\n'),
       },
     })
+
+    // Cache successful response (1 hour TTL)
+    setCache(cacheKey, JSON.stringify(references), 3600)
 
     return NextResponse.json({
       references,

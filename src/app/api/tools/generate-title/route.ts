@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { generateResearchTitle } from '@/lib/ai'
 import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
+import { generateCacheKey, getCache, setCache } from '@/lib/cache'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
   const limits: Record<string, number> = {
@@ -70,6 +71,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check cache first
+    const cacheKey = generateCacheKey('generate-title', sanitizedKeywords)
+    const cachedResult = getCache(cacheKey)
+    if (cachedResult) {
+      return NextResponse.json({
+        titles: JSON.parse(cachedResult),
+        remaining: limitCheck.remaining === Infinity ? 'unlimited' : limitCheck.remaining - 1,
+        cached: true,
+      })
+    }
+
     const titles = await generateResearchTitle(sanitizedKeywords, count)
     
     // Log usage
@@ -81,6 +93,9 @@ export async function POST(request: NextRequest) {
         outputText: titles.join('\n'),
       },
     })
+
+    // Cache successful response
+    setCache(cacheKey, JSON.stringify(titles), 3600)
 
     return NextResponse.json({
       titles,

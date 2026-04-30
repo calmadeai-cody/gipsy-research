@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { paraphraseParagraph } from '@/lib/ai'
 import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
+import { generateCacheKey, getCache, setCache } from '@/lib/cache'
 
 async function checkDailyLimit(userId: string, tier: string, toolName: string): Promise<{ allowed: boolean; remaining: number }> {
   const limits: Record<string, number> = {
@@ -82,8 +83,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check cache first
+    const cacheKey = generateCacheKey('paraphrase', sanitizedParagraph)
+    const cachedResult = getCache(cacheKey)
+    if (cachedResult) {
+      return NextResponse.json({
+        paraphrased: JSON.parse(cachedResult),
+        remaining: limitCheck.remaining === Infinity ? 'unlimited' : limitCheck.remaining - 1,
+        cached: true,
+      })
+    }
+
     const paraphrased = await paraphraseParagraph(sanitizedParagraph)
     
+    // Cache successful response
+    setCache(cacheKey, JSON.stringify(paraphrased), 3600)
+
     // Log usage
     await prisma.toolUsage.create({
       data: {
