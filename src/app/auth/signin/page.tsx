@@ -1,38 +1,46 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
-import { useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 function SignInForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingGoogle, setLoadingGoogle] = useState(false)
+  const [message, setMessage] = useState('')
+  const [mounted, setMounted] = useState(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-  const [error, setError] = useState('')
+  const supabase = createClient()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
+    setMessage('')
     
     try {
-      const result = await signIn('email', {
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        callbackUrl,
-        redirect: false,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?callbackUrl=${callbackUrl}`,
+        },
       })
       
-      if (result?.error) {
-        setError('Gagal mengirim email. Silakan coba lagi.')
+      if (error) {
+        setMessage('Gagal mengirim email. Silakan coba lagi.')
       } else {
+        setMessage('Link masuk telah dikirim! Cek email kamu.')
         setEmail('')
-        window.location.href = result?.url || callbackUrl
       }
     } catch {
-      setError('Terjadi kesalahan. Silakan coba lagi.')
+      setMessage('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setLoading(false)
     }
@@ -40,7 +48,20 @@ function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setLoadingGoogle(true)
-    await signIn('google', { callbackUrl })
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?callbackUrl=${callbackUrl}`,
+      },
+    })
+  }
+
+  if (!mounted) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center text-gray-400">
+        Memuat...
+      </div>
+    )
   }
 
   return (
@@ -48,9 +69,9 @@ function SignInForm() {
       <h1 className="text-2xl font-bold text-center mb-2">Masuk ke GipsyAI</h1>
       <p className="text-gray-400 text-center mb-8">Pilih metode login yang Anda inginkan</p>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-          {error}
+      {message && (
+        <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm">
+          {message}
         </div>
       )}
 

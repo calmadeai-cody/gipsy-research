@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || ''
@@ -17,6 +17,7 @@ function verifySignature(payload: Record<string, string>): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
     const payload = await request.json()
     
     // Verify signature
@@ -30,9 +31,11 @@ export async function POST(request: NextRequest) {
     console.log('Midtrans webhook:', { order_id, transaction_status, gross_amount })
 
     // Find subscription by order_id
-    const subscription = await prisma.subscription.findFirst({
-      where: { midtransOrderId: order_id },
-    })
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('id, user_id')
+      .eq('midtrans_order_id', order_id)
+      .single()
 
     if (!subscription) {
       console.error('Subscription not found for order:', order_id)
@@ -44,15 +47,15 @@ export async function POST(request: NextRequest) {
       case 'capture':
       case 'settlement':
         // Payment successful
-        await prisma.subscription.update({
-          where: { id: subscription.id },
-          data: {
+        await supabase
+          .from('subscriptions')
+          .update({
             status: 'active',
-            midtransTransactionId: transaction_id,
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-          },
-        })
-        console.log('Subscription activated:', subscription.userId)
+            midtrans_transaction_id: transaction_id,
+            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+          })
+          .eq('id', subscription.id)
+        console.log('Subscription activated:', subscription.user_id)
         break
 
       case 'pending':
@@ -62,20 +65,20 @@ export async function POST(request: NextRequest) {
 
       case 'expire':
         // Payment expired
-        await prisma.subscription.update({
-          where: { id: subscription.id },
-          data: { status: 'cancelled' },
-        })
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('id', subscription.id)
         console.log('Subscription expired:', order_id)
         break
 
       case 'cancel':
       case 'deny':
         // Payment failed
-        await prisma.subscription.update({
-          where: { id: subscription.id },
-          data: { status: 'inactive' },
-        })
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'inactive' })
+          .eq('id', subscription.id)
         console.log('Subscription cancelled:', order_id)
         break
 

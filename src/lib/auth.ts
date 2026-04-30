@@ -1,79 +1,156 @@
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { NextAuthOptions } from 'next-auth'
-import { Resend } from 'resend'
-import EmailProvider from 'next-auth/providers/email'
-import GoogleProvider from 'next-auth/providers/google'
-import { prisma } from './prisma'
+import { supabase } from './supabase'
+import { cookies } from 'next/headers'
+import { createClient } from './supabase/server'
 
-const resend = new Resend(process.env.AUTH_RESEND_KEY)
-
-interface ExtendedUser {
-  id: string
-  tier?: string
-  subscriptionStatus?: string
+// Types
+interface ExtendedSession {
+  user: {
+    id: string
+    email?: string
+    name?: string
+    image?: string
+    tier?: string
+    subscriptionStatus?: string
+  }
 }
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    }),
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST || 'smtp.resend.com',
-        port: Number(process.env.EMAIL_SERVER_PORT) || 587,
-        auth: {
-          user: 'resend',
-          pass: process.env.AUTH_RESEND_KEY,
-        },
-      },
-      from: 'GipsyAI <noreply@gipsyai.com>',
-      sendVerificationRequest: async ({ identifier, url }) => {
-        const { error } = await resend.emails.send({
-          from: 'GipsyAI <noreply@gipsyai.com>',
-          to: identifier,
-          subject: 'Masuk ke GipsyAI',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #8B5CF6;">GipsyAI</h1>
-              <p>Halo!</p>
-              <p>Klik tombol di bawah untuk masuk ke akun GipsyAI kamu:</p>
-              <a href="${url}" style="display: inline-block; background: #8B5CF6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Masuk ke GipsyAI</a>
-              <p>Atau salin link ini: <br/><a href="${url}">${url}</a></p>
-              <p style="color: #666; font-size: 12px;">Link ini akan kedaluwarsa dalam 24 jam.</p>
-            </div>
-          `,
-        })
-        if (error) {
-          console.error('Failed to send email:', error)
-          throw new Error('Gagal mengirim email')
-        }
-      },
-    }),
-  ],
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        const extUser = session.user as ExtendedUser
-        extUser.id = user.id
-        // Get subscription
-        const subscription = await prisma.subscription.findUnique({
-          where: { userId: user.id },
-        })
-        extUser.tier = subscription?.tier || 'BASIC'
-        extUser.subscriptionStatus = subscription?.status || 'inactive'
-      }
-      return session
+// Helper to get current session
+export async function getSession(): Promise<ExtendedSession | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return null
+
+  // Get subscription
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('tier, status')
+    .eq('user_id', user.id)
+    .single()
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.user_metadata?.full_name,
+      image: user.user_metadata?.avatar_url,
+      tier: subscription?.tier || 'BASIC',
+      subscriptionStatus: subscription?.status || 'inactive',
     },
-  },
-  pages: {
-    signIn: '/auth/signin',
-    verifyRequest: '/auth/verify',
-    error: '/auth/error',
-  },
-  session: {
-    strategy: 'jwt',
-  },
+  }
+}
+
+// Auth helper for API routes
+export async function requireAuth() {
+  const session = await getSession()
+  if (!session?.user) {
+    throw new Error('Unauthorized')
+  }
+  return session
+}
+
+// Sign in with email magic link
+export async function signInWithEmail(email: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+    },
+  })
+  return { error }
+}
+
+// Sign in with Google
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+    },
+  })
+  return { data, error }
+}
+
+// Sign out
+export async function signOut() {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signOut()
+  return { error }
+}
+
+// Get current user
+export async function getCurrentUser() {
+  const session = await getSession()
+  return session?.user || null
+}
+
+// Update user profile
+export async function updateProfile(updates: { name?: string; email?: string }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', user.id)
+  
+  return { error }
+}
+
+// Middleware helper - check if user is authenticated
+export function isAuthenticated(session: ExtendedSession | null): boolean {
+  return session !== null && !!session.user
+}
+
+// Get subscription for current user
+export async function getSubscription(userId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+  
+  return { data, error }
+}
+
+// Update subscription
+export async function updateSubscription(userId: string, updates: {
+  tier?: string
+  status?: string
+  period?: string
+  midtransOrderId?: string
+  midtransTransactionId?: string
+  currentPeriodEnd?: string
+}) {
+  const supabase = await createClient()
+  
+  // First check if subscription exists
+  const { data: existing } = await supabase
+    .from('subscriptions')
+    .select('id')
+    .eq('user_id', userId)
+    .single()
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .update(updates)
+      .eq('user_id', userId)
+      .select()
+      .single()
+    return { data, error }
+  } else {
+    // Create new subscription
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .insert({ user_id: userId, ...updates })
+      .select()
+      .single()
+    return { data, error }
+  }
 }

@@ -31,7 +31,7 @@ export default function ToolPage() {
   const slug = params?.slug as string
   const meta = toolMeta[slug] || { title: slug, description: 'AI Tool', category: 'General', pro: false }
   
-  const calmadeUrl = `https://calmade.ai/chat?tool=${encodeURIComponent(slug)}&mode=iframe`
+  const calmadeUrl = `https://calmadeai.com/chat?tool=${encodeURIComponent(slug)}&mode=iframe`
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">

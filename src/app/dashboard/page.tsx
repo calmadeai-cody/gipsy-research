@@ -1,25 +1,31 @@
-import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 import UsageChart from '@/components/dashboard/UsageChart'
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!session?.user?.email) {
+  if (!user) {
     redirect('/auth/signin?callbackUrl=/dashboard')
   }
 
-  const userEmail = session.user.email
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-    include: { subscription: true }
-  })
+  // Get user profile and subscription
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('name, email')
+    .eq('id', user.id)
+    .single()
 
-  const tier = (session.user as { tier?: string })?.tier || 'BASIC'
-  const subscriptionStatus = (session.user as { subscriptionStatus?: string })?.subscriptionStatus || 'inactive'
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('tier, status')
+    .eq('user_id', user.id)
+    .single()
+
+  const tier = subscription?.tier || 'BASIC'
+  const subscriptionStatus = subscription?.status || 'inactive'
 
   const dailyLimits: Record<string, number> = {
     BASIC: 10,
@@ -64,10 +70,12 @@ export default async function DashboardPage() {
             <span className="text-xl font-bold gradient-text">GipsyAI</span>
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-gray-400">{userEmail}</span>
-            <Link href="/api/auth/signout" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
-              Keluar
-            </Link>
+            <span className="text-gray-400">{profile?.email || user.email}</span>
+            <form action="/auth/signout" method="POST">
+              <button type="submit" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
+                Keluar
+              </button>
+            </form>
           </div>
         </div>
       </nav>
@@ -77,7 +85,7 @@ export default async function DashboardPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-gray-400">Selamat datang di GipsyAI, {user?.name || userEmail}</p>
+            <p className="text-gray-400">Selamat datang di GipsyAI, {profile?.name || profile?.email || 'User'}</p>
           </div>
 
           {/* Subscription Status + Analytics */}

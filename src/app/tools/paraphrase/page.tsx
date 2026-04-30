@@ -1,21 +1,34 @@
 'use client'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ParaphrasePage() {
-  const { data: session } = useSession()
   const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
   const [paragraph, setParagraph] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    setMounted(true)
+    const supabase = createClient()
+    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+      if (!result.data.user) {
+        router.push('/auth/signin?callbackUrl=/tools/paraphrase')
+      } else {
+        setUser(result.data.user)
+      }
+    })
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!session) {
+    if (!user) {
       router.push('/auth/signin?callbackUrl=/tools/paraphrase')
       return
     }
@@ -44,6 +57,14 @@ export default function ParaphrasePage() {
     }
   }
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-400">Memuat...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -55,9 +76,11 @@ export default function ParaphrasePage() {
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-400 hover:text-white transition">Dashboard</Link>
-            <Link href="/api/auth/signout" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
-              Keluar
-            </Link>
+            <form action="/auth/signout" method="POST">
+              <button type="submit" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
+                Keluar
+              </button>
+            </form>
           </div>
         </div>
       </nav>

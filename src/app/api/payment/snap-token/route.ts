@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 import { snapClient, generateOrderId, TIER_PRICES, getEnabledPayments } from '@/lib/midtrans'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -18,49 +17,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })
     }
 
-    const userEmail = session.user.email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
     // Check existing pending subscription
-    const existingSub = await prisma.subscription.findFirst({
-      where: {
-        userId: user.id,
-        status: 'pending',
-        tier,
-      },
-    })
+    const { data: existingSubs } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .eq('tier', tier)
+      .limit(1)
 
+    const existingSub = existingSubs?.[0]
     const grossAmount = TIER_PRICES[tier]
     const orderId = generateOrderId(tier)
 
     // Create or update subscription
-    await prisma.subscription.upsert({
-      where: { id: existingSub?.id || 'temp' },
-      create: {
-        id: existingSub?.id || undefined,
-        userId: user.id,
-        tier,
-        status: 'pending',
-        period: 'MONTHLY',
-        midtransOrderId: orderId,
-      },
-      update: {
-        midtransOrderId: orderId,
-        status: 'pending',
-      },
-    })
+    if (existingSub) {
+      await supabase
+        .from('subscriptions')
+        .update({
+          midtrans_order_id: orderId,
+          status: 'pending',
+        })
+        .eq('id', existingSub.id)
+    } else {
+      await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          tier,
+          status: 'pending',
+          period: 'MONTHLY',
+          midtrans_order_id: orderId,
+        })
+    }
 
-    // Create Snap token
+    // Get user profile for name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', user.id)
+      .single()
+
     const customerDetails = {
-      first_name: user.name?.split(' ')[0] || 'GipsyAI',
-      last_name: user.name?.split(' ').slice(1).join(' ') || 'User',
-      email: user.email,
+      first_name: profile?.name?.split(' ')[0] || 'GipsyAI',
+      last_name: profile?.name?.split(' ').slice(1).join(' ') || 'User',
+      email: profile?.email || user.email,
       phone: '',
     }
 

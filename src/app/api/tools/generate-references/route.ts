@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 import { generateBibliography } from '@/lib/ai'
 import { sanitizeInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
@@ -23,28 +21,29 @@ async function checkDailyLimit(userId: string, tier: string, toolName: string): 
     return { allowed: false, remaining: 0 }
   }
 
+  const supabase = await createClient()
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
-  const usageToday = await prisma.toolUsage.count({
-    where: {
-      userId,
-      toolName,
-      createdAt: { gte: today },
-    },
-  })
+  const { count } = await supabase
+    .from('tool_usage')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('tool_name', toolName)
+    .gte('created_at', today.toISOString())
 
   return {
-    allowed: usageToday < limit,
-    remaining: Math.max(0, limit - usageToday),
+    allowed: (count || 0) < limit,
+    remaining: Math.max(0, limit - (count || 0)),
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     
-    if (!session?.user?.email) {
+    if (!user) {
       return NextResponse.json(new ApiError('Unauthorized', ErrorCodes.UNAUTHORIZED, 401).toJSON(), { status: 401 })
     }
 
@@ -56,16 +55,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(new ApiError('Invalid content input', ErrorCodes.VALIDATION_ERROR, 400).toJSON(), { status: 400 })
     }
 
-    const userEmail = session.user.email
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    })
+    // Get subscription to check tier
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('tier')
+      .eq('user_id', user.id)
+      .single()
 
-    if (!user) {
-      return NextResponse.json(new ApiError('User not found', ErrorCodes.USER_NOT_FOUND, 404).toJSON(), { status: 404 })
-    }
-
-    const tier = (session.user as { tier?: string })?.tier || 'BASIC'
+    const tier = subscription?.tier || 'BASIC'
     
     if (tier === 'BASIC') {
       return NextResponse.json(
@@ -97,13 +94,11 @@ export async function POST(request: NextRequest) {
     const references = await generateBibliography(sanitizedContent, style)
     
     // Log usage
-    await prisma.toolUsage.create({
-      data: {
-        userId: user.id,
-        toolName: 'generate-references',
-        inputText: sanitizedContent.substring(0, 500),
-        outputText: references.join('\n'),
-      },
+    await supabase.from('tool_usage').insert({
+      user_id: user.id,
+      tool_name: 'generate-references',
+      input_text: sanitizedContent.substring(0, 500),
+      output_text: references.join('\n'),
     })
 
     // Cache successful response (1 hour TTL)

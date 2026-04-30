@@ -1,22 +1,35 @@
 'use client'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function GeneratorJudulPage() {
-  const { data: session } = useSession()
   const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
   const [keywords, setKeywords] = useState('')
   const [count, setCount] = useState(5)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<string[]>([])
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    setMounted(true)
+    const supabase = createClient()
+    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+      if (!result.data.user) {
+        router.push('/auth/signin?callbackUrl=/tools/generator-judul')
+      } else {
+        setUser(result.data.user)
+      }
+    })
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!session) {
+    if (!user) {
       router.push('/auth/signin?callbackUrl=/tools/generator-judul')
       return
     }
@@ -45,6 +58,14 @@ export default function GeneratorJudulPage() {
     }
   }
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-400">Memuat...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -56,9 +77,11 @@ export default function GeneratorJudulPage() {
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-400 hover:text-white transition">Dashboard</Link>
-            <Link href="/api/auth/signout" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
-              Keluar
-            </Link>
+            <form action="/auth/signout" method="POST">
+              <button type="submit" className="px-4 py-2 text-sm border border-gray-700 hover:border-gray-600 rounded-lg transition">
+                Keluar
+              </button>
+            </form>
           </div>
         </div>
       </nav>
