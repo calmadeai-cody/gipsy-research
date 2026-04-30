@@ -3,33 +3,35 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-04-30 06:08 UTC
+- **Last Updated:** 2026-04-30 09:10 UTC
 
 ---
 
 ## Current Status
-- **Phase:** Implementation - Input sanitization added
+- **Phase:** Implementation - Caching added
 - **Cron Job ID:** 2f9d176d-8cc2-4c04-a057-71f025105837
 - **Cron Schedule:** Every 3 hours (0 */3 * * *)
 
 ---
 
-## Iteration 2026-04-30 06:08 UTC ✅
+## Iteration 2026-04-30 09:10 UTC ✅
 
 ### What Was Done
-1. **Input Sanitization** — Created `src/lib/sanitize.ts` with:
-   - `sanitizeInput()` - strips control chars, removes injection patterns, truncates to 5000 chars
-   - `validateAIInput()` - validates input length (2-5000 chars)
-2. **Updated all 3 API routes** to use sanitization:
-   - `generate-title/route.ts` — sanitizes keywords before AI call
-   - `paraphrase/route.ts` — sanitizes paragraph before AI call
-   - `generate-references/route.ts` — sanitizes content before AI call
-3. **Added 10 new tests** in `tests/lib/sanitize.test.ts`
-4. **All 31 tests passing** — 10 sanitize + 8 AI lib + 13 API route tests
+1. **API Response Caching** — Created `src/lib/cache.ts` with:
+   - SHA-256 hashed cache keys (tool + normalized input)
+   - TTL support (default 1 hour)
+   - LRU eviction at 500 entries max
+   - `generateCacheKey()`, `getCache()`, `setCache()`, `clearCache()`
+2. **Updated all 3 API routes** with caching:
+   - `generate-title/route.ts` — checks cache before AI call, includes `cached: true` in response
+   - `paraphrase/route.ts` — same pattern
+   - `generate-references/route.ts` — same pattern (key includes style)
+3. **Added 18 new tests** in `tests/lib/cache.test.ts`
+4. **All 49 tests passing** — 18 cache + 10 sanitize + 8 AI lib + 13 API route tests
 5. **Build verified clean** — All routes compiling correctly
 
 ### Git Commit
-- `195d12d` - feat: add input sanitization to prevent prompt injection [THIS ITERATION]
+- `e554f71` - feat: add in-memory caching for AI API responses [THIS ITERATION]
 
 ---
 
@@ -42,6 +44,7 @@
 - **Testing**: Vitest framework with 31 tests passing
 - **Error Handling**: Structured ApiError class with error codes
 - **Input Sanitization**: sanitizeInput() + validateAIInput() in src/lib/sanitize.ts
+- **Response Caching**: In-memory cache with SHA-256 keys, TTL, LRU in src/lib/cache.ts
 
 ---
 
@@ -59,19 +62,20 @@ All routes verified in build:
 | `/tools/[slug]` | ✅ (iframe — BLOCKED: calmade.ai down) |
 | `/tools/generator-judul`, `/tools/paraphrase`, `/tools/daftar-pustaka` | ✅ (direct API) |
 | `/api/payment/snap-token`, `/api/webhook/midtrans` | ✅ |
-| `/api/tools/generate-title`, `/api/tools/paraphrase`, `/api/tools/generate-references` | ✅ (with sanitization) |
+| `/api/tools/generate-title`, `/api/tools/paraphrase`, `/api/tools/generate-references` | ✅ (with sanitization + caching) |
 
 ---
 
-## Test Coverage (31 tests passing)
+## Test Coverage (49 tests passing)
 | Test File | Tests | Coverage |
 |-----------|-------|----------|
+| `tests/lib/cache.test.ts` | 18 | Cache key generation, TTL, LRU eviction |
 | `tests/lib/sanitize.test.ts` | 10 | Input sanitization functions |
 | `tests/lib/ai.test.ts` | 8 | AI library functions |
 | `tests/api/tools/generate-title.test.ts` | 5 | Auth, validation, rate limiting |
 | `tests/api/tools/paraphrase.test.ts` | 4 | Auth, validation, tier access |
 | `tests/api/tools/generate-references.test.ts` | 4 | Auth, validation, style options |
-| **Total** | **31** | All passing |
+| **Total** | **49** | All passing |
 
 ---
 
@@ -80,10 +84,10 @@ All routes verified in build:
 ### Completed ✅
 1. ✅ Structured error responses — ApiError class with codes
 2. ✅ Input sanitization — sanitizeInput + validateAIInput
+3. ✅ API response caching — in-memory cache with TTL and LRU eviction
 
 ### Immediate (No External Dependencies)
-3. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
-4. **Add API response caching** — Cache repeated AI responses for same inputs
+4. **Add usage analytics dashboard** — Dashboard shows tier but no actual usage stats beyond basic counts
 
 ### Blocked on External Services (Need Credentials)
 1. **Database migration** — Run `prisma migrate dev` with real DATABASE_URL
@@ -120,15 +124,16 @@ All routes verified in build:
 | Tier System Unified | ✅ |
 | Build Verified | ✅ |
 | Lint Clean | ✅ |
-| Test Framework | ✅ (Vitest, 31 passing) |
+| Test Framework | ✅ (Vitest, 49 passing) |
 | Structured Errors | ✅ |
 | Input Sanitization | ✅ |
+| Response Caching | ✅ |
 | Documentation | ✅ |
 | Integration Ready | 🔒 Blocked on credentials |
 | 17 Tools Working | ❌ Blocked on calmade.ai decision |
 
 ---
 
-**Summary:** Added input sanitization via src/lib/sanitize.ts. All 31 tests passing. Build verified clean. Next logical step is usage analytics dashboard or API response caching.
+**Summary:** Added in-memory response caching with SHA-256 hashed keys, TTL, and LRU eviction. All 49 tests passing. Build verified clean. Next logical step is usage analytics dashboard.
 
-**Progress since last iteration:** Added sanitize.ts with sanitizeInput/validateAIInput functions. Updated all 3 API routes. Added 10 new tests. Committed as 195d12d.
+**Progress since last iteration:** Added cache.ts with generateCacheKey/getCache/setCache/clearCache. Updated all 3 API routes with cache checks. Added 18 new tests. Committed as e554f71.
