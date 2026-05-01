@@ -3,7 +3,7 @@
 ## Active Project
 - **Project:** GipsyAI (Academic AI Super-App) - REBUILD
 - **Location:** ~/gipsyai-project/
-- **Last Updated:** 2026-05-01 03:09 UTC
+- **Last Updated:** 2026-05-01 06:10 UTC
 
 ---
 
@@ -14,30 +14,27 @@
 
 ---
 
-## Iteration 2026-05-01 03:09 UTC ✅
+## Iteration 2026-05-01 06:03 UTC ✅
 
 ### What Was Done
-1. **Generator Pertanyaan Sidang Tool** — New PRO tier tool that generates thesis defense questions:
-   - `src/lib/ai/sidang-generator.ts` — Anthropic API call with JSON parsing + fallback
-   - `src/app/api/tools/generate-sidang-questions/route.ts` — API route with auth, tier check (BASIC blocked, PRO unlimited), rate limiting (5/day for BASIC), caching, usage logging
-   - `src/app/tools/generator-pertanyaan-sidang/page.tsx` — React form + results display with dark theme
-   - `tests/lib/sidang-generator.test.ts` — 4 unit tests (all passing)
+1. **Generator Research Gap & Novelty Tool** — New PRO tier tool that analyzes research topics and identifies gaps + novelty points:
+   - `src/lib/ai/research-gap-generator.ts` — Anthropic API call with JSON parsing
+   - `src/app/api/tools/generate-research-gap/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
+   - `src/app/tools/generator-research-gap/page.tsx` — React form + results display (Research Gaps, Novelty Points, Suggested Directions)
+   - `tests/lib/research-gap-generator.test.ts` — 7 unit tests (all passing)
 2. **Tool Details:**
-   - PRO tier tool (BASIC users blocked with 403)
-   - BASIC users: 5 questions/day limit
-   - PRO/PRO_RESEARCHER: unlimited
-   - Input: title (max 300) + methodology (max 500) + findings (max 500)
-   - Output: 5-8 numbered questions
+   - PRO tier tool (BASIC users: 5 uses/day)
+   - Input: research_topic (max 500) + research_timeline (optional, max 1000)
+   - Output: 3-5 research gaps, 3-5 novelty points, 2-3 suggested directions
    - Uses in-memory cache with 1 hour TTL
    - Logs usage to `tool_usage` table
 3. **QA Review:** APPROVED ✅
-   - Spec compliance: All files pass pattern checks
-   - Build: SUCCESS (36 routes generated)
-   - Tests: 66 tests passing (4 new)
-   - Lint: Pre-existing issues only (not in new files)
-4. **Git Commit:** `4a8d3f2` - feat: add Generator Pertanyaan Sidang tool (PRO tier, 5/day BASIC)
+   - Build: SUCCESS (37 routes generated)
+   - Tests: 73 tests passing (7 new)
+   - Lint: Clean
+4. **Git Commit:** `d9704ee` - feat: add Generator Research Gap & Novelty tool (PRO tier, 5/day BASIC)
 
-### Direct API Tools (6 total now)
+### Direct API Tools (7 total now)
 | Tool | Route | Tier | Status |
 |------|-------|------|--------|
 | Generator Judul Penelitian | /tools/generator-judul | FREE | ✅ |
@@ -45,7 +42,8 @@
 | Pembuatan Daftar Pustaka | /tools/daftar-pustaka | PRO | ✅ |
 | AI to Human | /tools/ai-to-human | FREE | ✅ |
 | Generator Abstrak Penelitian | /tools/generator-abstrak | PRO | ✅ |
-| Generator Pertanyaan Sidang | /tools/generator-pertanyaan-sidang | PRO | ✅ NEW |
+| Generator Pertanyaan Sidang | /tools/generator-pertanyaan-sidang | PRO | ✅ |
+| Generator Research Gap & Novelty | /tools/generator-research-gap | PRO | ✅ NEW |
 
 ---
 
@@ -145,6 +143,7 @@
 6. ✅ AI to Human tool — Convert AI text to natural human-sounding language (FREE tier)
 7. ✅ Generator Abstrak Penelitian — Generate academic abstracts (PRO tier)
 8. ✅ Generator Pertanyaan Sidang — Generate thesis defense questions (PRO tier)
+9. ✅ Generator Research Gap & Novelty — Identify research gaps and novelty (PRO tier, 5/day BASIC)
 
 ### Option B Implementation (Direct Anthropic API)
 Following pattern: AI lib → API route → Page → Tests
@@ -193,4 +192,4 @@ Next tools to implement:
 
 **Summary:** Added Generator Pertanyaan Sidang tool (PRO tier) - the 6th direct API tool. Takes title + methodology + findings, outputs 5-8 thesis defense questions. QA approved. 66 tests passing. Build clean. Next: implement Generator Research Gap & Novelty (identifies research gaps and novelty points) as next PRO tool.
 
-**Progress since last iteration:** Added Generator Pertanyaan Sidang tool. 66 tests passing. Committed as 4a8d3f2. Architecture confirmed: Option B (Direct Anthropic API). 6 tools now working via direct API.
+**Progress since last iteration:** Added Generator Research Gap & Novelty tool. 73 tests passing. Committed as d9704ee. Architecture confirmed: Option B (Direct Anthropic API). 7 tools now working via direct API.
