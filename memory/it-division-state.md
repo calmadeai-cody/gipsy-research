@@ -250,3 +250,62 @@ From SPEC.md - 20 total tools needed, 8 implemented:
 18. Asisten Analisis Statistik (PRO)
 19. Generator Deskripsi Gambar (PRO)
 20. Konversi ke Artikel Ilmiah (PRO)
+
+---
+
+## Iteration 2026-05-01 12:08 UTC ✅
+
+### What Was Done
+1. **Generator Proposal Penelitian Tool** — New PRO tier tool that generates comprehensive research proposal sections:
+   - `src/lib/ai/proposal-generator.ts` — Anthropic API call with JSON parsing
+   - `src/app/api/tools/generate-proposal/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
+   - `src/app/tools/generator-proposal/page.tsx` — React form + results display (background, objectives, methodology, expected_outcomes, timeline, references)
+   - `tests/lib/proposal-generator.test.ts` — 12 unit tests (all passing)
+2. **Tool Details:**
+   - PRO tier tool (BASIC users: 5 uses/day)
+   - Input: research_title (max 300) + research_problem (max 500)
+   - Output: background, objectives (3-5), methodology, expected_outcomes (3-5), timeline, references (3-5)
+   - Uses in-memory cache with 1 hour TTL
+   - Logs usage to `tool_usage` table
+   - Copy-to-clipboard for each section
+3. **QA Review:** APPROVED ✅
+   - Build: SUCCESS (39 routes generated)
+   - Tests: 92 tests passing (12 new)
+   - Lint: Clean
+4. **Git Commit:** `6a3b93b` - feat: add Generator Proposal Penelitian tool (PRO tier, 5/day BASIC)
+
+### Direct API Tools (9 total now)
+| Tool | Route | Tier | Status |
+|------|-------|------|--------|
+| Generator Judul Penelitian | /tools/generator-judul | FREE | ✅ |
+| Parafrase Paragraf | /tools/paraphrase | FREE | ✅ |
+| Pembuatan Daftar Pustaka | /tools/daftar-pustaka | PRO | ✅ |
+| AI to Human | /tools/ai-to-human | FREE | ✅ |
+| Generator Abstrak Penelitian | /tools/generator-abstrak | PRO | ✅ |
+| Generator Pertanyaan Sidang | /tools/generator-pertanyaan-sidang | PRO | ✅ |
+| Generator Research Gap & Novelty | /tools/generator-research-gap | PRO | ✅ |
+| Generator Kerangka Berpikir | /tools/diagram-kerangka-berpikir | PRO | ✅ |
+| Generator Proposal Penelitian | /tools/generator-proposal | PRO | ✅ NEW |
+
+### Next Tools to Implement (Priority Order)
+From SPEC.md - 20 total tools needed, 9 implemented:
+1. ✅ Generator Judul Penelitian (FREE)
+2. ✅ Parafrase Paragraf (FREE)
+3. ✅ Pembuatan Daftar Pustaka (PRO)
+4. ✅ AI to Human (FREE)
+5. ✅ Generator Abstrak Penelitian (PRO)
+6. ✅ Generator Pertanyaan Sidang (PRO)
+7. ✅ Generator Research Gap & Novelty (PRO)
+8. ✅ Generator Kerangka Berpikir (PRO)
+9. ✅ Generator Proposal Penelitian (PRO) ← JUST COMPLETED
+10. **Pemilihan Metode Penelitian** (PRO) — Next
+11. Generator Tinjauan Pustaka (PRO)
+12. Asisten Pengembang Teks (PRO)
+13. Generator Latar Belakang (PRO)
+14. Generator Landasan Teori (PRO)
+15. Pencari Artikel Ilmiah (PRO)
+16. Analisis Teks Transkrip (PRO)
+17. Asisten Visualisasi Data (PRO)
+18. Asisten Analisis Statistik (PRO)
+19. Generator Deskripsi Gambar (PRO)
+20. Konversi ke Artikel Ilmiah (PRO)
