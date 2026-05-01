@@ -254,28 +254,27 @@ From SPEC.md - 20 total tools needed, 8 implemented:
 
 ---
 
-## Iteration 2026-05-01 15:03 UTC ✅
+## Iteration 2026-05-01 18:03 UTC ✅
 
 ### What Was Done
-1. **Pemilihan Metode Penelitian Tool** — New PRO tier tool that recommends appropriate research methodologies:
-   - `src/lib/ai/methodology-generator.ts` — Anthropic API call with JSON parsing
-   - `src/app/api/tools/generate-methodology/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
-   - `src/app/tools/generator-metodologi/page.tsx` — React form + results display (3-4 methodology options with suitability, description, characteristics, data collection, examples + recommendation + considerations)
-   - `tests/lib/methodology-generator.test.ts` — 11 unit tests (all passing)
+1. **Generator Tinjauan Pustaka Tool** — New PRO tier tool that generates literature review sections for academic research:
+   - `src/lib/ai/literature-review-generator.ts` — Anthropic API call with JSON parsing
+   - `src/app/api/tools/generate-literature-review/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
+   - `src/app/tools/generator-tinjauan-pustaka/page.tsx` — React form + results display (sections: introductory, theoretical, gap_connection, summary + sources table)
+   - `tests/lib/literature-review-generator.test.ts` — 8 unit tests (all passing)
 2. **Tool Details:**
    - PRO tier tool (BASIC users: 5 uses/day)
-   - Input: research_type (dropdown: Kuantitatif/Kualitatif/Mixed Methods/Kombinasi) + research_topic (max 500 chars)
-   - Output: 3-4 methodology options with detailed descriptions + recommendation + considerations
+   - Input: research_topic (max 500) + research_focus (optional, max 500) + num_sources (default 5)
+   - Output: 4 sections + sources array (title, author, year, relevance, key_findings)
    - Uses in-memory cache with 1 hour TTL
    - Logs usage to `tool_usage` table
-   - Copy-to-clipboard for each section
 3. **QA Review:** APPROVED ✅
-   - Build: SUCCESS (40 routes generated)
-   - Tests: 103 tests passing (11 new)
+   - Build: SUCCESS (41 routes generated)
+   - Tests: 111 tests passing (8 new)
    - Lint: Clean
-4. **Git Commit:** `0da077b` - feat: add Pemilihan Metode Penelitian tool (PRO tier, 5/day BASIC)
+4. **Git Commit:** `f8dcdff` - feat: add Generator Tinjauan Pustaka tool (PRO tier, 5/day BASIC)
 
-### Direct API Tools (10 total now)
+### Direct API Tools (11 total now)
 | Tool | Route | Tier | Status |
 |------|-------|------|--------|
 | Generator Judul Penelitian | /tools/generator-judul | FREE | ✅ |
@@ -287,10 +286,11 @@ From SPEC.md - 20 total tools needed, 8 implemented:
 | Generator Research Gap & Novelty | /tools/generator-research-gap | PRO | ✅ |
 | Generator Kerangka Berpikir | /tools/diagram-kerangka-berpikir | PRO | ✅ |
 | Generator Proposal Penelitian | /tools/generator-proposal | PRO | ✅ |
-| Pemilihan Metode Penelitian | /tools/generator-metodologi | PRO | ✅ NEW |
+| Pemilihan Metode Penelitian | /tools/generator-metodologi | PRO | ✅ |
+| Generator Tinjauan Pustaka | /tools/generator-tinjauan-pustaka | PRO | ✅ NEW |
 
 ### Next Tools to Implement (Priority Order)
-From SPEC.md - 20 total tools needed, 10 implemented:
+From SPEC.md - 20 total tools needed, 11 implemented:
 1. ✅ Generator Judul Penelitian (FREE)
 2. ✅ Parafrase Paragraf (FREE)
 3. ✅ Pembuatan Daftar Pustaka (PRO)
@@ -300,9 +300,9 @@ From SPEC.md - 20 total tools needed, 10 implemented:
 7. ✅ Generator Research Gap & Novelty (PRO)
 8. ✅ Generator Kerangka Berpikir (PRO)
 9. ✅ Generator Proposal Penelitian (PRO)
-10. ✅ Pemilihan Metode Penelitian (PRO) ← JUST COMPLETED
-11. **Generator Tinjauan Pustaka** (PRO) — Next
-12. Asisten Pengembang Teks (PRO)
+10. ✅ Pemilihan Metode Penelitian (PRO)
+11. ✅ Generator Tinjauan Pustaka (PRO) ← JUST COMPLETED
+12. **Asisten Pengembang Teks** (PRO) — Next
 13. Generator Latar Belakang (PRO)
 14. Generator Landasan Teori (PRO)
 15. Pencari Artikel Ilmiah (PRO)
