@@ -193,3 +193,60 @@ Next tools to implement:
 **Summary:** Added Generator Pertanyaan Sidang tool (PRO tier) - the 6th direct API tool. Takes title + methodology + findings, outputs 5-8 thesis defense questions. QA approved. 66 tests passing. Build clean. Next: implement Generator Research Gap & Novelty (identifies research gaps and novelty points) as next PRO tool.
 
 **Progress since last iteration:** Added Generator Research Gap & Novelty tool. 73 tests passing. Committed as d9704ee. Architecture confirmed: Option B (Direct Anthropic API). 7 tools now working via direct API.
+---
+
+## Iteration 2026-05-01 09:03 UTC ✅
+
+### What Was Done
+1. **Generator Kerangka Berpikir Tool** — New PRO tier tool that generates conceptual framework diagrams for research:
+   - `src/lib/ai/framework-generator.ts` — Anthropic API call with JSON parsing
+   - `src/app/api/tools/generate-framework/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
+   - `src/app/tools/diagram-kerangka-berpikir/page.tsx` — React form + results display (framework description, variables table, relationships, Mermaid diagram)
+   - `tests/lib/framework-generator.test.ts` — 7 unit tests (all passing)
+2. **Tool Details:**
+   - PRO tier tool (BASIC users: 5 uses/day)
+   - Input: title (max 300) + variables (max 500) + methodology (max 500)
+   - Output: framework description, variables (independent/dependent/moderating/mediating), relationships list, Mermaid diagram
+   - Color-coded variable type badges (independent=blue, dependent=emerald, moderating=amber, mediating=purple)
+   - Uses in-memory cache with 1 hour TTL
+   - Logs usage to `tool_usage` table
+3. **QA Review:** APPROVED ✅
+   - Build: SUCCESS (38 routes generated)
+   - Tests: 80 tests passing (7 new)
+   - Lint: Clean (minor test file lint warning - non-blocking)
+4. **Git Commit:** `b8118b0` - feat: add Generator Kerangka Berpikir tool (PRO tier, 5/day BASIC)
+
+### Direct API Tools (8 total now)
+| Tool | Route | Tier | Status |
+|------|-------|------|--------|
+| Generator Judul Penelitian | /tools/generator-judul | FREE | ✅ |
+| Parafrase Paragraf | /tools/paraphrase | FREE | ✅ |
+| Pembuatan Daftar Pustaka | /tools/daftar-pustaka | PRO | ✅ |
+| AI to Human | /tools/ai-to-human | FREE | ✅ |
+| Generator Abstrak Penelitian | /tools/generator-abstrak | PRO | ✅ |
+| Generator Pertanyaan Sidang | /tools/generator-pertanyaan-sidang | PRO | ✅ |
+| Generator Research Gap & Novelty | /tools/generator-research-gap | PRO | ✅ |
+| Generator Kerangka Berpikir | /tools/diagram-kerangka-berpikir | PRO | ✅ NEW |
+
+### Next Tools to Implement (Priority Order)
+From SPEC.md - 20 total tools needed, 8 implemented:
+1. ✅ Generator Judul Penelitian (FREE)
+2. ✅ Parafrase Paragraf (FREE)
+3. ✅ Pembuatan Daftar Pustaka (PRO)
+4. ✅ AI to Human (FREE)
+5. ✅ Generator Abstrak Penelitian (PRO)
+6. ✅ Generator Pertanyaan Sidang (PRO)
+7. ✅ Generator Research Gap & Novelty (PRO)
+8. ✅ Generator Kerangka Berpikir (PRO) ← JUST COMPLETED
+9. **Generator Proposal Penelitian** (PRO) — Next
+10. Generator Tinjauan Pustaka (PRO)
+11. Pemilihan Metode Penelitian (PRO)
+12. Asisten Pengembang Teks (PRO)
+13. Generator Latar Belakang (PRO)
+14. Generator Landasan Teori (PRO)
+15. Pencari Artikel Ilmiah (PRO)
+16. Analisis Teks Transkrip (PRO)
+17. Asisten Visualisasi Data (PRO)
+18. Asisten Analisis Statistik (PRO)
+19. Generator Deskripsi Gambar (PRO)
+20. Konversi ke Artikel Ilmiah (PRO)
