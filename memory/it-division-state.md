@@ -314,27 +314,17 @@ From SPEC.md - 20 total tools needed, 11 implemented:
 
 ---
 
-## Iteration 2026-05-02 00:03 UTC ✅ (Extended)
+## Iteration 2026-05-02 00:12 UTC ✅
 
 ### What Was Done
-1. **Generator Latar Belakang Tool** — New PRO tier tool that generates research background sections:
-   - `src/lib/ai/background-generator.ts` — Anthropic API call with academic Indonesian prompt
-   - `src/app/api/tools/generate-background/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
-   - `src/app/tools/generator-latar-belakang/page.tsx` — React form + results display
-   - `tests/lib/background-generator.test.ts` — 9 unit tests (all passing)
-2. **Git Commit:** `63dc38f` - feat: add Generator Latar Belakang tool (PRO tier, 5/day BASIC)
+1. **Pencari Artikel Ilmiah Tool** — New PRO tier tool that suggests relevant academic articles:
+   - `src/lib/ai/article-finder.ts` — Anthropic API call, returns ArticleSuggestion[] (title, journal, description, keywords)
+   - `src/app/api/tools/find-articles/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
+   - `src/app/tools/pencari-artikel/page.tsx` — React form + results display (list of 10 articles with journal badges)
+   - `tests/lib/article-finder.test.ts` — 7 unit tests (all passing)
+2. **Git Commit:** `1e1ca50` - feat: add Pencari Artikel Ilmiah tool (PRO tier, 5/day BASIC)
 
-### Iteration 2026-05-02 00:09 UTC ✅
-
-### What Was Done
-1. **Generator Landasan Teori Tool** — New PRO tier tool that generates theoretical foundation sections:
-   - `src/lib/ai/theory-generator.ts` — Anthropic API call with academic Indonesian prompt
-   - `src/app/api/tools/generate-theory/route.ts` — API route with auth, tier check (BASIC: 5/day), caching, usage logging
-   - `src/app/tools/generator-landasan-teori/page.tsx` — React form + results display
-   - `tests/lib/theory-generator.test.ts` — 9 unit tests (all passing)
-2. **Git Commit:** `f3418c7` - feat: add Generator Landasan Teori tool (PRO tier, 5/day BASIC)
-
-### Direct API Tools (14 total now)
+### Direct API Tools (15 total now)
 | Tool | Route | Tier | Status |
 |------|-------|------|--------|
 | Generator Judul Penelitian | /tools/generator-judul | FREE | ✅ |
@@ -350,10 +340,11 @@ From SPEC.md - 20 total tools needed, 11 implemented:
 | Generator Tinjauan Pustaka | /tools/generator-tinjauan-pustaka | PRO | ✅ |
 | Asisten Pengembang Teks | /tools/pengembang-teks | PRO | ✅ |
 | Generator Latar Belakang | /tools/generator-latar-belakang | PRO | ✅ |
-| Generator Landasan Teori | /tools/generator-landasan-teori | PRO | ✅ NEW |
+| Generator Landasan Teori | /tools/generator-landasan-teori | PRO | ✅ |
+| Pencari Artikel Ilmiah | /tools/pencari-artikel | PRO | ✅ NEW |
 
 ### Next Tools to Implement (Priority Order)
-From SPEC.md - 20 total tools needed, 14 implemented:
+From SPEC.md - 20 total tools needed, 15 implemented:
 1. ✅ Generator Judul Penelitian (FREE)
 2. ✅ Parafrase Paragraf (FREE)
 3. ✅ Pembuatan Daftar Pustaka (PRO)
@@ -367,24 +358,24 @@ From SPEC.md - 20 total tools needed, 14 implemented:
 11. ✅ Generator Tinjauan Pustaka (PRO)
 12. ✅ Asisten Pengembang Teks (PRO)
 13. ✅ Generator Latar Belakang (PRO)
-14. ✅ Generator Landasan Teori (PRO) ← JUST COMPLETED
-15. **Pencari Artikel Ilmiah** (PRO) — Next
-16. Analisis Teks Transkrip (PRO)
+14. ✅ Generator Landasan Teori (PRO)
+15. ✅ Pencari Artikel Ilmiah (PRO) ← JUST COMPLETED
+16. **Analisis Teks Transkrip** (PRO) — Next
 17. Asisten Visualisasi Data (PRO)
 18. Asisten Analisis Statistik (PRO)
 19. Generator Deskripsi Gambar (PRO)
 20. Konversi ke Artikel Ilmiah (PRO)
 
 ### Blockers
-1. **🔴 CRITICAL: calmade.ai DNS does not exist** — 6 iframe-based tools blocked
+1. **🔴 CRITICAL: calmade.ai DNS does not exist** — 5 iframe-based tools blocked
 2. **DATABASE_URL** — PostgreSQL connection needed (currently localhost placeholder)
 3. **External API keys** — AUTH_RESEND_KEY, ANTHROPIC_API_KEY are placeholders
 
 ### Project Status
 | Aspect | Status |
 |--------|--------|
-| Direct API Tools | ✅ (14 working)
-| Tests | ✅ (138 passing)
+| Direct API Tools | ✅ (15 working)
+| Tests | ✅ (145 passing)
 | Build | ✅ SUCCESS
 | Documentation | ✅ Current
 
