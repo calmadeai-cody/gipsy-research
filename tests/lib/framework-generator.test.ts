@@ -44,8 +44,8 @@ describe('generateFramework', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
-    const module = await import('@/lib/ai/framework-generator')
-    resetAnthropicClient = module.resetAnthropicClient
+    const mod = await import('@/lib/ai/framework-generator')
+    resetAnthropicClient = mod.resetAnthropicClient
   })
 
   afterEach(() => {

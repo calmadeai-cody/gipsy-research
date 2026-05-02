@@ -99,6 +99,7 @@ ${JSON.stringify(literatureReviewResponse)}
 \`\`\``
 
     const { Anthropic } = await import('@anthropic-ai/sdk')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const MockAnthropic = Anthropic as any
     const instance = new MockAnthropic({})
     instance.messages.create = vi.fn().mockResolvedValue({
@@ -133,6 +134,7 @@ ${JSON.stringify(literatureReviewResponse)}
     await generateLiteratureReview('Test topic', 'Test focus', 3)
 
     const { Anthropic } = await import('@anthropic-ai/sdk')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const MockAnthropic = Anthropic as any
     expect(MockAnthropic).toBeDefined()
   })

@@ -28,8 +28,8 @@ describe('sanitizeInput', () => {
   })
   
   it('returns empty string for non-string input', () => {
-    expect(sanitizeInput(null as any)).toBe('')
-    expect(sanitizeInput(undefined as any)).toBe('')
+    expect(sanitizeInput(null as unknown as string)).toBe('')
+    expect(sanitizeInput(undefined as unknown as string)).toBe('')
   })
 })
 
@@ -52,5 +52,6 @@ describe('validateAIInput', () => {
   it('rejects input over 5000 chars', () => {
     const result = validateAIInput('A'.repeat(5001))
     expect(result.valid).toBe(false)
+    expect(result.reason).toContain('5000')
   })
 })

@@ -113,6 +113,7 @@ describe('generateMethodology', () => {
 
     // The mock should have been called
     const { Anthropic } = await import('@anthropic-ai/sdk')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const MockAnthropic = Anthropic as any
     expect(MockAnthropic).toBeDefined()
   })
@@ -168,6 +169,7 @@ describe('generateMethodology', () => {
 })
 
 // Helper to construct mock
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function constructMockAnthropic(response: any) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function MockAnthropic(this: { messages: { create: ReturnType<typeof vi.fn> } }, _config: { apiKey?: string }) {

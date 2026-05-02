@@ -140,6 +140,7 @@ describe('analyzeTranscript', () => {
     const { analyzeTranscript } = await import('@/lib/ai/transcript-analyzer')
     const types = ['summarize', 'key_points', 'themes', 'sentiment']
     for (const type of types) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await analyzeTranscript('Teks contoh untuk test', type as any)
       expect(result).toBeDefined()
       expect(result.analysis_type).toBe(type)

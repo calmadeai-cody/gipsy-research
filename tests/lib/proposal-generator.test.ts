@@ -46,8 +46,8 @@ describe('generateProposal', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
-    const module = await import('@/lib/ai/proposal-generator')
-    resetAnthropicClient = module.resetAnthropicClient
+    const mod = await import('@/lib/ai/proposal-generator')
+    resetAnthropicClient = mod.resetAnthropicClient
   })
 
   afterEach(() => {
