@@ -20,6 +20,7 @@ export default function UsageChart() {
   const [mostActiveTime, setMostActiveTime] = useState<'morning' | 'afternoon' | 'evening'>('evening')
   const [mounted, setMounted] = useState(false)
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setMounted(true)
     const usageStats = getUsageStats()

@@ -1,5 +1,4 @@
-import { supabase } from './supabase'
-import { cookies } from 'next/headers'
+// Auth helpers (server-side)
 import { createClient } from './supabase/server'
 
 // Types
