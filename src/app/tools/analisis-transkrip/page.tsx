@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -7,6 +8,14 @@ import { createClient } from '@/lib/supabase/client'
 import { trackUsage } from '@/lib/analytics'
 
 const MAX_LENGTH = 5000
+
+interface AnalysisResult {
+  summary?: string
+  processed_at?: string
+  key_points?: Array<{ point: string; importance: string; context?: string }>
+  themes?: Array<{ theme: string; description: string; relevance: string }>
+  sentiment?: { overall: string; breakdown: Record<string, number>; dominant_emotions: string[]; positive_percentage?: number; negative_percentage?: number; neutral_percentage?: number; emotional_tone?: string; key_sentiments?: string[] }
+}
 
 const ANALYSIS_TYPES = [
   { value: 'summarize', label: 'Ringkasan', description: 'Buat ringkasan 200-300 kata dari transkrip' },
@@ -17,19 +26,19 @@ const ANALYSIS_TYPES = [
 
 export default function AnalisisTranskripPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [transcriptText, setTranscriptText] = useState('')
   const [analysisType, setAnalysisType] = useState<string>('summarize')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState('')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((res: { data: { user: any } }) => {
+    supabase.auth.getUser().then((res: { data: { user: User | null } }) => {
       if (!res.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/analisis-transkrip')
       } else {
@@ -87,7 +96,7 @@ export default function AnalisisTranskripPage() {
             <h3 className="text-lg font-semibold mb-3">Ringkasan</h3>
             <p className="text-gray-300 whitespace-pre-wrap">{result.summary}</p>
             <p className="text-gray-500 text-sm mt-4">
-              Diproses pada: {new Date(result.processed_at).toLocaleString('id-ID')}
+              Diproses pada: {result.processed_at ? new Date(result.processed_at).toLocaleString('id-ID') : 'N/A'}
             </p>
           </div>
         )
@@ -96,7 +105,7 @@ export default function AnalisisTranskripPage() {
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Poin Kunci</h3>
-            {result.key_points?.map((point: any, index: number) => (
+            {result.key_points?.map((point, index) => (
               <div key={index} className="bg-gray-800 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className={`w-3 h-3 rounded-full mt-1.5 ${
@@ -125,7 +134,7 @@ export default function AnalisisTranskripPage() {
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Tema Utama</h3>
-            {result.themes?.map((theme: any, index: number) => (
+            {result.themes?.map((theme, index) => (
               <div key={index} className="bg-gray-800 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">📌</span>
@@ -197,11 +206,11 @@ export default function AnalisisTranskripPage() {
                 <p className="text-white">{result.sentiment?.emotional_tone}</p>
               </div>
 
-              {result.sentiment?.key_sentiments?.length > 0 && (
+              {(result.sentiment?.key_sentiments?.length ?? 0) > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-700">
                   <p className="text-gray-400 text-sm mb-2">Sentimen Kunci:</p>
                   <div className="flex flex-wrap gap-2">
-                    {result.sentiment.key_sentiments.map((sent: string, i: number) => (
+                    {result.sentiment?.key_sentiments?.map((sent: string, i: number) => (
                       <span key={i} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-sm">
                         {sent}
                       </span>

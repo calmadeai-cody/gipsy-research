@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, startTransition } from 'react'
 import { getUsageStats, getPopularTools, getMostActiveTime } from '@/lib/analytics'
 
 interface PopularTool {
@@ -20,16 +20,17 @@ export default function UsageChart() {
   const [mostActiveTime, setMostActiveTime] = useState<'morning' | 'afternoon' | 'evening'>('evening')
   const [mounted, setMounted] = useState(false)
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const usageStats = getUsageStats()
-    setStats({
-      totalCount: usageStats.totalCount,
-      dailyUsage: usageStats.dailyUsage,
+    startTransition(() => {
+      setStats({
+        totalCount: usageStats.totalCount,
+        dailyUsage: usageStats.dailyUsage,
+      })
+      setPopularTools(getPopularTools())
+      setMostActiveTime(getMostActiveTime())
     })
-    setPopularTools(getPopularTools())
-    setMostActiveTime(getMostActiveTime())
   }, [])
 
   if (!mounted) {

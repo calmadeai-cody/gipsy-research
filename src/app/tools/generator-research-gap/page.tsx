@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -24,7 +25,7 @@ const MAX_TIMELINE_LENGTH = 1000
 
 export default function GeneratorResearchGapPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [topic, setTopic] = useState('')
   const [timeline, setTimeline] = useState('')
@@ -33,9 +34,9 @@ export default function GeneratorResearchGapPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((res: { data: { user: any } }) => {
+    supabase.auth.getUser().then((res: { data: { user: User | null } }) => {
       if (!res.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/generator-research-gap')
       } else {

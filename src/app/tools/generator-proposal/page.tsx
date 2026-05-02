@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,7 +9,7 @@ import { trackUsage } from '@/lib/analytics'
 
 export default function GeneratorProposalPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [researchTitle, setResearchTitle] = useState('')
   const [researchProblem, setResearchProblem] = useState('')
@@ -26,9 +27,9 @@ export default function GeneratorProposalPage() {
   const [cached, setCached] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+    supabase.auth.getUser().then((result: { data: { user: User | null } }) => {
       if (!result.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/generator-proposal')
       } else {

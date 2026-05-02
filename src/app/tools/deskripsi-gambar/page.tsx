@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -18,7 +19,7 @@ interface DescriptionResult {
 
 export default function DeskripsiGambarPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
   const [context, setContext] = useState('')
@@ -29,9 +30,9 @@ export default function DeskripsiGambarPage() {
   const [cached, setCached] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+    supabase.auth.getUser().then((result: { data: { user: User | null } }) => {
       if (!result.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/deskripsi-gambar')
       } else {

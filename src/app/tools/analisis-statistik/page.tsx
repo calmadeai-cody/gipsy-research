@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,7 +9,7 @@ import { trackUsage } from '@/lib/analytics'
 
 export default function AnalisisStatistikPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [question, setQuestion] = useState('')
   const [dataType, setDataType] = useState('')
@@ -30,9 +31,9 @@ export default function AnalisisStatistikPage() {
   const [cached, setCached] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+    supabase.auth.getUser().then((result: { data: { user: User | null } }) => {
       if (!result.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/analisis-statistik')
       } else {

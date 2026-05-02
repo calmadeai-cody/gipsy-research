@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -30,7 +31,7 @@ interface ConversionResult {
 
 export default function KonversiArtikelPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [draft, setDraft] = useState('')
   const [journal, setJournal] = useState('')
@@ -43,9 +44,9 @@ export default function KonversiArtikelPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+    supabase.auth.getUser().then((result: { data: { user: User | null } }) => {
       if (!result.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/konversi-artikel')
       } else {

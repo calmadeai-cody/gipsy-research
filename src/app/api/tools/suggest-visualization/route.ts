@@ -4,7 +4,7 @@ import { suggestVisualization, ChartType } from '@/lib/ai/data-viz'
 import { sanitizeInput } from '@/lib/sanitize'
 import { validateAIInput } from '@/lib/sanitize'
 import { ApiError, ErrorCodes } from '@/lib/api-error'
-import { generateCacheKey, getCache, setCache } from '@/lib/cache'
+import { getCache, setCache } from '@/lib/cache'
 import { createHash } from 'node:crypto'
 
 const MAX_DESCRIPTION_LENGTH = 1000

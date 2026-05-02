@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -12,7 +13,7 @@ const MAX_FINDINGS_LENGTH = 500
 
 export default function GeneratorPertanyaanSidangPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [title, setTitle] = useState('')
   const [methodology, setMethodology] = useState('')
@@ -22,9 +23,9 @@ export default function GeneratorPertanyaanSidangPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((result: { data: { user: any } }) => {
+    supabase.auth.getUser().then((result: { data: { user: User | null } }) => {
       if (!result.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/generator-pertanyaan-sidang')
       } else {

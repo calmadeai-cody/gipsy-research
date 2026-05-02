@@ -1,4 +1,5 @@
 'use client'
+import type { User } from '@supabase/supabase-js'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -27,7 +28,7 @@ const MAX_METHODOLOGY_LENGTH = 500
 
 export default function DiagramKerangkaBerpikirPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [title, setTitle] = useState('')
   const [variables, setVariables] = useState('')
@@ -37,9 +38,9 @@ export default function DiagramKerangkaBerpikirPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
     const supabase = createClient()
-    supabase.auth.getUser().then((res: { data: { user: any } }) => {
+    supabase.auth.getUser().then((res: { data: { user: User | null } }) => {
       if (!res.data.user) {
         router.push('/auth/signin?callbackUrl=/tools/diagram-kerangka-berpikir')
       } else {

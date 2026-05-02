@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,12 +12,11 @@ function SignInForm() {
   const [message, setMessage] = useState('')
   const [mounted, setMounted] = useState(false)
   const searchParams = useSearchParams()
-  const router = useRouter()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const supabase = createClient()
 
   useEffect(() => {
-    setMounted(true)
+    queueMicrotask(() => setMounted(true))
   }, [])
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
